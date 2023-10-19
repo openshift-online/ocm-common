@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/aws"
-	semver "github.com/hashicorp/go-version"
 	"github.com/openshift-online/ocm-common/pkg"
 )
 
@@ -24,32 +23,6 @@ func IsManagedRole(roleTags []*iam.Tag) bool {
     }
 
     return false
-}
-
-func HasCompatibleVersionTags(iamTags []*iam.Tag, version string) (bool, error) {
-	if len(iamTags) == 0 {
-		return false, nil
-	}
-
-	wantedVersion, err := semver.NewVersion(version)
-	if err != nil {
-		return false, err
-	}
-	
-	for _, tag := range iamTags {
-		if aws.StringValue(tag.Key) == OpenShiftVersion {
-			if version == aws.StringValue(tag.Value) {
-				return true, nil
-			}
-			
-			currentVersion, err := semver.NewVersion(aws.StringValue(tag.Value))
-			if err != nil {
-				return false, err
-			}
-			return currentVersion.GreaterThanOrEqual(wantedVersion), nil
-		}
-	}
-	return false, nil
 }
 
 func IamResourceHasTag(iamTags []*iam.Tag, tagKey string, tagValue string) bool {

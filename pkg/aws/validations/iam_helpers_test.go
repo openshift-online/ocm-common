@@ -64,56 +64,6 @@ var _ = Describe("AWS IAM Functions", func() {
 		})
 	})
 
-	var _ = Describe("HasCompatibleVersionTags", func() {
-		var iamTags []*iam.Tag
-
-		BeforeEach(func() {
-			iamTags = []*iam.Tag{
-				{Key: aws.String(OpenShiftVersion), Value: aws.String("1.2.3")},
-				{Key: aws.String("SomeOtherTag"), Value: aws.String("value")},
-			}
-		})
-
-		It("should return true if the version tag matches the provided version", func() {
-			version := "1.2.3"
-
-			result, err := HasCompatibleVersionTags(iamTags, version)
-
-			Expect(result).To(BeTrue())
-			Expect(err).To(BeNil())
-		})
-
-		It("should return false if the version tag does not match the provided version", func() {
-			version := "2.0.0"
-
-			result, err := HasCompatibleVersionTags(iamTags, version)
-
-			Expect(result).To(BeFalse())
-			Expect(err).To(BeNil())
-		})
-
-		It("should return false if the version tag is not present", func() {
-			version := "1.2.3"
-			iamTags = []*iam.Tag{
-				{Key: aws.String("SomeOtherTag"), Value: aws.String("value")},
-			}
-
-			result, err := HasCompatibleVersionTags(iamTags, version)
-
-			Expect(result).To(BeFalse())
-			Expect(err).To(BeNil())
-		})
-
-		It("should return an error if the provided version is not a valid semantic version", func() {
-			version := "invalid-version"
-
-			result, err := HasCompatibleVersionTags(iamTags, version)
-
-			Expect(result).To(BeFalse())
-			Expect(err).ToNot(BeNil())
-		})
-	})
-
 	var _ = Describe("IamResourceHasTag", func() {
 		It("should return true if the tag with the specified key and value exists", func() {
 			iamTags := []*iam.Tag{
