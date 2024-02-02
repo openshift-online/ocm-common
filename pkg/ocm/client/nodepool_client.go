@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+
 	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 )
 
-//go:generate mockgen -source=nodepool_client.go -package=testing -destination=testing/mock_nodepool_client.go
+//go:generate mockgen -source=nodepool_client.go -package=mocks -destination=mocks/mock_nodepool_client.go
 type NodePoolClient interface {
 	CollectionClusterSubResource[v1.NodePool, string]
 }

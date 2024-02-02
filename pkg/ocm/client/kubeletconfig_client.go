@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
+
 	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 )
 
 // KubeletConfigClient wraps the OCM SDK to provide a more unit testable friendly way of
 // interacting with the OCM API
 //
-//go:generate mockgen -source=kubeletconfig_client.go -package=testing -destination=testing/mock_kubeletconfig_client.go
+//go:generate mockgen -source=kubeletconfig_client.go -package=mocks -destination=mocks/mock_kubeletconfig_client.go
 type KubeletConfigClient interface {
 	SingleClusterSubResource[v1.KubeletConfig]
 }

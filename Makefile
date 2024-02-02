@@ -49,3 +49,7 @@ clean:
 	rm -rf \
 		ocm-common \
 		$(NULL)
+
+.PHONY: generate
+generate:
+	go generate ./...

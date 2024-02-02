@@ -2,6 +2,16 @@ package test
 
 import v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 
+// NewCluster creates an empty Cluster that can be used in tests. Tests can
+// mutate the Cluster to their requirements via the variadic list of functions
+func NewCluster(modifyFn ...func(k *v1.ClusterBuilder)) (*v1.Cluster, error) {
+	builder := &v1.ClusterBuilder{}
+	for _, f := range modifyFn {
+		f(builder)
+	}
+	return builder.Build()
+}
+
 // NewKubeletConfig creates an empty KubeletConfig that can be used in tests. Tests can
 // mutate the KubeletConfig to their requirements via the variadic list of functions
 func NewKubeletConfig(modifyFn ...func(k *v1.KubeletConfigBuilder)) (*v1.KubeletConfig, error) {
