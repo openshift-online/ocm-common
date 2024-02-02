@@ -8,6 +8,15 @@ import (
 
 var _ = Describe("OCM Client Types", func() {
 
+	It("Allows customisation of Cluster", func() {
+		cluster, err := NewCluster(func(k *v1.ClusterBuilder) {
+			k.Name("new name")
+		})
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cluster.Name()).To(Equal("new name"))
+	})
+
 	It("Allows customisation of KubeletConfig", func() {
 		kubeletConfig, err := NewKubeletConfig(func(k *v1.KubeletConfigBuilder) {
 			k.PodPidsLimit(5000)

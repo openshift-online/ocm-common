@@ -27,6 +27,17 @@ type CollectionClusterSubResource[T any, S any] interface {
 	List(ctx context.Context, clusterId string, paging Paging) ([]*T, bool, error)
 }
 
+// CollectionClusterResource defines clients that operate for cluster resources
+type CollectionClusterResource[T any, S any] interface {
+	Get(ctx context.Context, clusterId string) (*T, error)
+	Exists(ctx context.Context, clusterId string) (bool, *T, error)
+	Create(ctx context.Context, instance *T) (*T, error)
+	Update(ctx context.Context, clusterId string, instance *T) (*T, error)
+	Delete(ctx context.Context, clusterId string) error
+	List(ctx context.Context, paging Paging) ([]*T, bool, error)
+}
+
+// TODO update paging to an args struct
 // Paging encapsulates paging requests for list methods
 type Paging struct {
 	size int
@@ -96,6 +107,60 @@ type CollectionClusterSubResourceImpl[T any, S any] struct {
 	listFunc   func(ctx context.Context, clusterId string, paging Paging) (OcmListResponse[T], error)
 }
 
+// CollectionClusterResourceImpl provides the basic struct for CollectionCluster clients
+type CollectionClusterResourceImpl[T any, S any] struct {
+	getFunc    func(ctx context.Context, clusterId string) (OcmInstanceResponse[T], error)
+	updateFunc func(ctx context.Context, clusterId string, instance *T) (OcmInstanceResponse[T], error)
+	createFunc func(ctx context.Context, instance *T) (OcmInstanceResponse[T], error)
+	deleteFunc func(ctx context.Context, clusterId string) (OcmResponse, error)
+	listFunc   func(ctx context.Context, paging Paging) (OcmListResponse[T], error)
+}
+
+var _ SingleClusterSubResource[interface{}] = &SingleClusterSubResourceImpl[interface{}]{}
+var _ CollectionClusterSubResource[interface{}, string] = &CollectionClusterSubResourceImpl[interface{}, string]{}
+var _ CollectionClusterResource[interface{}, string] = &CollectionClusterResourceImpl[interface{}, string]{}
+
+func (c CollectionClusterResourceImpl[T, S]) Get(ctx context.Context, clusterId string) (*T, error) {
+	response, err := c.getFunc(ctx, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body(), nil
+}
+
+func (c CollectionClusterResourceImpl[T, S]) Exists(ctx context.Context, clusterId string) (bool, *T, error) {
+	return exists(c.getFunc(ctx, clusterId))
+}
+
+func (c CollectionClusterResourceImpl[T, S]) Create(ctx context.Context, instance *T) (*T, error) {
+	response, err := c.createFunc(ctx, instance)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body(), nil
+}
+
+func (c CollectionClusterResourceImpl[T, S]) Update(ctx context.Context, clusterId string, instance *T) (*T, error) {
+	response, err := c.updateFunc(ctx, clusterId, instance)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body(), nil
+}
+
+func (c CollectionClusterResourceImpl[T, S]) Delete(ctx context.Context, clusterId string) error {
+	_, err := c.deleteFunc(ctx, clusterId)
+	return err
+}
+
+func (c CollectionClusterResourceImpl[T, S]) List(ctx context.Context, paging Paging) ([]*T, bool, error) {
+	response, err := c.listFunc(ctx, paging)
+	if err != nil {
+		return make([]*T, 0), false, err
+	}
+	return response.Items(), response.HasItems(), nil
+}
+
 func (c *CollectionClusterSubResourceImpl[T, S]) Get(ctx context.Context, clusterId string, instanceId S) (*T, error) {
 	response, err := c.getFunc(ctx, clusterId, instanceId)
 	if err != nil {
@@ -137,9 +202,6 @@ func (c *CollectionClusterSubResourceImpl[T, S]) List(ctx context.Context, clust
 	return response.Items(), response.HasItems(), nil
 }
 
-var _ SingleClusterSubResource[interface{}] = &SingleClusterSubResourceImpl[interface{}]{}
-var _ CollectionClusterSubResource[interface{}, string] = &CollectionClusterSubResourceImpl[interface{}, string]{}
-
 func (s *SingleClusterSubResourceImpl[T]) Get(ctx context.Context, clusterId string) (*T, error) {
 	response, err := s.getFunc(ctx, clusterId)
 	if err != nil {
@@ -147,17 +209,6 @@ func (s *SingleClusterSubResourceImpl[T]) Get(ctx context.Context, clusterId str
 	}
 
 	return response.Body(), nil
-}
-
-func exists[T any](response OcmInstanceResponse[T], err error) (bool, *T, error) {
-	if err != nil {
-		// A 404 indicates that the resource does not exist
-		if response.Status() == http.StatusNotFound {
-			return false, nil, nil
-		}
-		return false, nil, err
-	}
-	return response.Status() == http.StatusOK, response.Body(), nil
 }
 
 func (s *SingleClusterSubResourceImpl[T]) Exists(ctx context.Context, clusterId string) (bool, *T, error) {
@@ -184,4 +235,15 @@ func (s *SingleClusterSubResourceImpl[T]) Update(ctx context.Context, clusterId 
 func (s *SingleClusterSubResourceImpl[T]) Delete(ctx context.Context, clusterId string) error {
 	_, err := s.deleteFunc(ctx, clusterId)
 	return err
+}
+
+func exists[T any](response OcmInstanceResponse[T], err error) (bool, *T, error) {
+	if err != nil {
+		// A 404 indicates that the resource does not exist
+		if response.Status() == http.StatusNotFound {
+			return false, nil, nil
+		}
+		return false, nil, err
+	}
+	return response.Status() == http.StatusOK, response.Body(), nil
 }
