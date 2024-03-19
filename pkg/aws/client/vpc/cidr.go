@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/apparentlymart/go-cidr/cidr"
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
 )
 
 func NewCIDRPool(vpcCIDR string) *VPCCIDRPool {

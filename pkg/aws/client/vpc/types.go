@@ -4,7 +4,7 @@ import (
 	"net"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	awsv2 "github.com/openshift-qe/openshift-rosa-cli/pkg/aws_client/aws_v2"
+	awsv2 "github.com/openshift-online/ocm-common/pkg/aws/client"
 )
 
 // ************************* CIDR Pool *************************

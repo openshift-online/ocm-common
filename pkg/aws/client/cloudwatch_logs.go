@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
+	"github.com/openshift-online/ocm-common/pkg/aws/log"
 )
 
 func (client *AwsV2Client) DescribeLogGroupsByName(logGroupName string) (cloudwatchlogs.DescribeLogGroupsOutput, error) {

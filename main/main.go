@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	awsV2 "github.com/openshift-online/ocm-common/pkg/aws/aws_v2"
+	awsV2 "github.com/openshift-online/ocm-common/pkg/aws/client"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
 	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
 )
 

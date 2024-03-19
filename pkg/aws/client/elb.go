@@ -3,9 +3,7 @@ package aws_v2
 import (
 	"context"
 
-	// elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	// elbtypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	elbtypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/types"
 	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
 )

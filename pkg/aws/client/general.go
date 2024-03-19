@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
+	"github.com/openshift-online/ocm-common/pkg/aws/log"
 )
 
 func (client *AwsV2Client) ResourceExisting(resourceID string) bool {

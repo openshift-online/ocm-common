@@ -1,4 +1,4 @@
-package aws_v2
+package client
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
+	"github.com/openshift-online/ocm-common/pkg/aws/log"
 
 	// elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
-	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
 )
 
 func CreateAWSV2Client(profileName string, region string) (*AwsV2Client, error) {

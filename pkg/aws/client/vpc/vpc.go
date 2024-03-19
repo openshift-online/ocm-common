@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	awsV2 "github.com/openshift-qe/openshift-rosa-cli/pkg/aws_client/aws_v2"
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
+	awsV2 "github.com/openshift-online/ocm-common/pkg/aws/client"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
 	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
 )
 

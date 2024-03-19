@@ -1,4 +1,4 @@
-package aws_v2
+package client
 
 import (
 	"context"
@@ -6,16 +6,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
-	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
+	"github.com/openshift-online/ocm-common/pkg/aws/log"
 )
 
 func (client *AwsV2Client) ListVPCByName(vpcName string) ([]types.Vpc, error) {
 	vpcs := []types.Vpc{}
 	filterKey := "tag:Name"
 	filter := []types.Filter{
-		types.Filter{
+		{
 			Name:   &filterKey,
 			Values: []string{vpcName},
 		},

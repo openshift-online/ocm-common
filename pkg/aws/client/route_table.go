@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	CON "github.com/openshift-qe/openshift-rosa-cli/pkg/constants"
-	"github.com/openshift-qe/openshift-rosa-cli/pkg/log"
+	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
+	"github.com/openshift-online/ocm-common/pkg/aws/log"
 )
 
 func (client *AwsV2Client) CreateRouteTable(vpcID string) (*ec2.CreateRouteTableOutput, error) {
