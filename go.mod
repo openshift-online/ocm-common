@@ -23,7 +23,7 @@ require (
 	github.com/openshift-online/ocm-sdk-go v0.1.391
 	github.com/openshift-qe/openshift-rosa-cli v0.0.0-20240314073913-f89a8b53b9ba
 	go.uber.org/mock v0.3.0
-	golang.org/x/crypto v0.14.0
+	golang.org/x/crypto v0.21.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
 
@@ -53,9 +53,9 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
