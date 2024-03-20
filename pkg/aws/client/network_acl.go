@@ -1,11 +1,11 @@
-package aws_v2
+package client
 
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/openshift-online/ocm-common/pkg/aws/log"
 )
 
