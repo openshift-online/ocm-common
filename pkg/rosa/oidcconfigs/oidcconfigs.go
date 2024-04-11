@@ -19,6 +19,7 @@ import (
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/openshift-online/ocm-common/pkg/utils"
+	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 )
 
 const (
@@ -218,6 +219,24 @@ func keyIDFromPublicKey(publicKey interface{}) (string, error) {
 	keyID := base64.RawURLEncoding.EncodeToString(publicKeyDERHash)
 
 	return keyID, nil
+}
+
+func FetchThumbprintByClusterId(awsInquiries *v1.AWSInquiriesClient, clusterId string) (string, error) {
+	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(clusterId).Send()
+	if err != nil {
+		return "", err
+	}
+
+	return result.Body().Thumbprint(), nil
+}
+
+func FetchThumbprintByOidcConfigId(awsInquiries *v1.AWSInquiriesClient, oidcConfigId string) (string, error) {
+	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(oidcConfigId).Send()
+	if err != nil {
+		return "", err
+	}
+
+	return result.Body().Thumbprint(), nil
 }
 
 func FetchThumbprint(oidcEndpointURL string) (string, error) {
