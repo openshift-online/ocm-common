@@ -221,22 +221,22 @@ func keyIDFromPublicKey(publicKey interface{}) (string, error) {
 	return keyID, nil
 }
 
-func FetchThumbprintByClusterId(awsInquiries *v1.AWSInquiriesClient, clusterId string) (string, error) {
+func FetchThumbprintByClusterId(awsInquiries *v1.AWSInquiriesClient, clusterId string) (*v1.AwsOidcThumbprint, error) {
 	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(clusterId).Send()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return result.Body().Thumbprint(), nil
+	return result.Body(), nil
 }
 
-func FetchThumbprintByOidcConfigId(awsInquiries *v1.AWSInquiriesClient, oidcConfigId string) (string, error) {
+func FetchThumbprintByOidcConfigId(awsInquiries *v1.AWSInquiriesClient, oidcConfigId string) (*v1.AwsOidcThumbprint, error) {
 	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(oidcConfigId).Send()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return result.Body().Thumbprint(), nil
+	return result.Body(), nil
 }
 
 func FetchThumbprint(oidcEndpointURL string) (string, error) {
