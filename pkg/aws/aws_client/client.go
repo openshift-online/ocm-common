@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -30,6 +31,7 @@ type AWSClient struct {
 	ClientContext        context.Context
 	AccountID            string
 	KmsClient            *kms.Client
+	CloudWatchLogsClient *cloudwatchlogs.Client
 }
 
 func CreateAWSClient(profileName string, region string) (*AWSClient, error) {

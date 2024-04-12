@@ -25,7 +25,7 @@ func (awsClient AWSClient) CreateHostedZone(hostedZoneName string, vpcID string,
 	if err != nil {
 		log.LogError("Create hosted zone failed for vpc %s with name %s: %s", vpcID, hostedZoneName, err.Error())
 	} else {
-		log.LogError("Create hosted zone succeed for vpc %s with name %s: %s", vpcID, hostedZoneName, err.Error())
+		log.LogError("Create hosted zone succeed for vpc %s with name %s", vpcID, hostedZoneName)
 	}
 	return resp, err
 }

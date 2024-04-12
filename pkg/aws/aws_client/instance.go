@@ -254,3 +254,52 @@ func (client *AWSClient) GetTagsOfInstanceProfile(instanceProfileName string) ([
 	tags := resp.Tags
 	return tags, err
 }
+
+func GetInstanceName(instance *types.Instance) string {
+	tags := instance.Tags
+	for _, tag := range tags {
+		if *tag.Key == "Name" {
+			return *tag.Value
+		}
+	}
+	return ""
+}
+
+// GetInstancesByInfraID will return the instances with tag tag:kubernetes.io/cluster/<infraID>
+func (client *AWSClient) GetInstancesByInfraID(infraID string) ([]types.Instance, error) {
+	filter := types.Filter{
+		Name: aws.String("tag:kubernetes.io/cluster/" + infraID),
+		Values: []string{
+			"owned",
+		},
+	}
+	output, err := client.Ec2Client.DescribeInstances(context.TODO(), &ec2.DescribeInstancesInput{
+		Filters: []types.Filter{
+			filter,
+		},
+		MaxResults: aws.Int32(100),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var instances []types.Instance
+	for _, reservation := range output.Reservations {
+		instances = append(instances, reservation.Instances...)
+	}
+	return instances, err
+}
+
+func (client *AWSClient) ListAvaliableRegionsFromAWS() ([]types.Region, error) {
+	optInStatus := "opt-in-status"
+	optInNotRequired := "opt-in-not-required"
+	optIn := "opted-in"
+	filter := types.Filter{Name: &optInStatus, Values: []string{optInNotRequired, optIn}}
+
+	output, err := client.Ec2Client.DescribeRegions(context.TODO(), &ec2.DescribeRegionsInput{
+		Filters: []types.Filter{
+			filter,
+		},
+	})
+
+	return output.Regions, err
+}
