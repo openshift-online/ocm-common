@@ -19,7 +19,6 @@ import (
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/openshift-online/ocm-common/pkg/utils"
-	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 )
 
 const (
@@ -221,22 +220,12 @@ func keyIDFromPublicKey(publicKey interface{}) (string, error) {
 	return keyID, nil
 }
 
-func FetchThumbprintByClusterId(awsInquiries *v1.AWSInquiriesClient, clusterId string) (*v1.AwsOidcThumbprint, error) {
-	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(clusterId).Send()
-	if err != nil {
-		return nil, err
-	}
+var (
+	Client utils.HTTPClient
+)
 
-	return result.Body(), nil
-}
-
-func FetchThumbprintByOidcConfigId(awsInquiries *v1.AWSInquiriesClient, oidcConfigId string) (*v1.AwsOidcThumbprint, error) {
-	result, err := awsInquiries.OidcThumbprint().Get().ClusterId(oidcConfigId).Send()
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Body(), nil
+func init() {
+	Client = &http.Client{}
 }
 
 func FetchThumbprint(oidcEndpointURL string) (string, error) {
@@ -244,7 +233,7 @@ func FetchThumbprint(oidcEndpointURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	response, err := http.Get(fmt.Sprintf("https://%s:443", connect.Host))
+	response, err := Client.Get(fmt.Sprintf("https://%s:443", connect.Host))
 	if err != nil {
 		return "", err
 	}

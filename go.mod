@@ -9,6 +9,7 @@ replace github.com/openshift-online/ocm-sdk-go => /home/thomasmckay/go/src/githu
 require (
 	github.com/aws/aws-sdk-go-v2 v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/iam v1.27.1
+	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-version v1.6.0
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.8
