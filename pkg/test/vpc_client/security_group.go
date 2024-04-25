@@ -1,8 +1,10 @@
 package vpc_client
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
+	con "github.com/openshift-online/ocm-common/pkg/aws/consts"
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
@@ -12,7 +14,7 @@ func (vpc *VPC) DeleteVPCSecurityGroups(customizedOnly bool) error {
 	if customizedOnly {
 		for _, sg := range securityGroups {
 			for _, tag := range sg.Tags {
-				if *tag.Key == "Name" && (*tag.Value == CON.ProxySecurityGroupName || *tag.Value == CON.AdditionalSecurityGroupName) {
+				if *tag.Key == "Name" && (*tag.Value == con.ProxySecurityGroupName || *tag.Value == con.AdditionalSecurityGroupName) {
 					needCleanGroups = append(needCleanGroups, sg)
 				}
 			}
@@ -32,30 +34,49 @@ func (vpc *VPC) DeleteVPCSecurityGroups(customizedOnly bool) error {
 	return nil
 }
 
+// CreateAndAuthorizeDefaultSecurityGroupForProxy can prepare a security group for the proxy launch
 func (vpc *VPC) CreateAndAuthorizeDefaultSecurityGroupForProxy() (string, error) {
 	var groupID string
 	var err error
-	protocol := CON.TCPProtocol
-	resp, err := vpc.AWSClient.CreateSecurityGroup(vpc.VpcID, CON.ProxySecurityGroupName, CON.ProxySecurityGroupDescription)
+	sgIDs, err := vpc.CreateAdditionalSecurityGroups(1, con.ProxySecurityGroupName, con.ProxySecurityGroupDescription)
 	if err != nil {
-		log.LogError("Create proxy security group failed for vpc %s: %s", vpc.VpcID, err)
-		return "", err
+		log.LogError("Security group prepare for proxy failed")
+	} else {
+		groupID = sgIDs[0]
+		log.LogInfo("Authorize SG %s prepared successfully for proxy.", groupID)
 	}
-	groupID = *resp.GroupId
-	log.LogInfo("SG %s created for vpc %s", groupID, vpc.VpcID)
-	cidrPortsMap := map[string]int32{
-		vpc.CIDRValue: 8080,
-		"0.0.0.0/0":   22,
-	}
-	for cidr, port := range cidrPortsMap {
-		_, err = vpc.AWSClient.AuthorizeSecurityGroupIngress(groupID, cidr, protocol, port, port)
-		if err != nil {
-			log.LogError("Authorize CIDR %s with port %v failed to SG %s of vpc %s: %s",
-				cidr, port, groupID, vpc.VpcID, err)
-			return groupID, err
-		}
-	}
-	log.LogInfo("Authorize SG %s successfully for proxy.", groupID)
-
 	return groupID, err
+}
+
+// CreateAdditionalSecurityGroups  can prepare <count> additional security groups
+// description can be empty which will be set to default value
+// namePrefix is required, otherwise if there is same security group existing the creation will fail
+func (vpc *VPC) CreateAdditionalSecurityGroups(count int, namePrefix string, description string) ([]string, error) {
+	preparedSGs := []string{}
+	createdsgNum := 0
+	if description == "" {
+		description = con.DefaultAdditionalSecurityGroupDescription
+	}
+	for createdsgNum < count {
+		sgName := fmt.Sprintf("%s-%d", namePrefix, createdsgNum)
+		sg, err := vpc.AWSClient.CreateSecurityGroup(vpc.VpcID, sgName, description)
+		if err != nil {
+			panic(err)
+		}
+		groupID := *sg.GroupId
+		cidrPortsMap := map[string]int32{
+			vpc.CIDRValue:                 8080,
+			con.RouteDestinationCidrBlock: 22,
+		}
+		for cidr, port := range cidrPortsMap {
+			_, err = vpc.AWSClient.AuthorizeSecurityGroupIngress(groupID, cidr, con.TCPProtocol, port, port)
+			if err != nil {
+				return preparedSGs, err
+			}
+		}
+
+		preparedSGs = append(preparedSGs, *sg.GroupId)
+		createdsgNum++
+	}
+	return preparedSGs, nil
 }

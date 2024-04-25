@@ -15,7 +15,7 @@ func (client *AWSClient) ListVPCByName(vpcName string) ([]types.Vpc, error) {
 	vpcs := []types.Vpc{}
 	filterKey := "tag:Name"
 	filter := []types.Filter{
-		types.Filter{
+		{
 			Name:   &filterKey,
 			Values: []string{vpcName},
 		},
@@ -91,7 +91,7 @@ func (client *AWSClient) ModifyVpcDnsAttribute(vpcID string, dnsAttribute string
 		log.LogError("Modify vpc dns attribute failed " + err.Error())
 		return nil, err
 	}
-	log.LogInfo("Modify vpc dns attribute success" + vpcID + dnsAttribute)
+	log.LogInfo("Modify vpc dns attribute %s successfully for %s", dnsAttribute, vpcID)
 	return resp, err
 }
 
@@ -103,10 +103,10 @@ func (client *AWSClient) DeleteVpc(vpcID string) (*ec2.DeleteVpcOutput, error) {
 
 	resp, err := client.Ec2Client.DeleteVpc(context.TODO(), input)
 	if err != nil {
-		log.LogError("Delete vpc %s failed "+err.Error(), vpcID)
+		log.LogError("Delete vpc %s failed with error %s", vpcID, err.Error())
 		return nil, err
 	}
-	log.LogInfo("Delete vpc success " + vpcID)
+	log.LogInfo("Delete vpc %s successfuly ", vpcID)
 	return resp, err
 
 }
@@ -127,7 +127,7 @@ func (client *AWSClient) DescribeVPC(vpcID string) (types.Vpc, error) {
 func (client *AWSClient) ListEndpointAssociation(vpcID string) ([]types.VpcEndpoint, error) {
 	vpcFilterKey := "vpc-id"
 	filters := []types.Filter{
-		types.Filter{
+		{
 			Name:   &vpcFilterKey,
 			Values: []string{vpcID},
 		},

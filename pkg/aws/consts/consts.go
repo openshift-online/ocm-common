@@ -41,9 +41,10 @@ const (
 	TCPProtocol = "tcp"
 	UDPProtocol = "udp"
 
-	ProxySecurityGroupName        = "proxy-sg"
-	AdditionalSecurityGroupName   = "ocm-additional-sg"
-	ProxySecurityGroupDescription = "security group for proxy"
+	ProxySecurityGroupName                    = "proxy-sg"
+	AdditionalSecurityGroupName               = "ocm-additional-sg"
+	ProxySecurityGroupDescription             = "security group for proxy"
+	DefaultAdditionalSecurityGroupDescription = "This security group is created for OCM testing"
 
 	QEFlagKey = "ocm_ci_flag"
 

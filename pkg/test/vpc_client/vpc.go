@@ -19,7 +19,7 @@ func (vpc *VPC) GenerateVPCBySubnet(subnetID string) (*VPC, error) {
 		return nil, err
 	}
 	log.LogInfo("Subnet info loaded from AWS by subnet: %s", subnetID)
-	vpc, err = GenerateVPCByID(vpc.AWSClient, *subnetDetail[0].VpcId)
+	vpc, err = GenerateVPCByID(*subnetDetail[0].VpcId, vpc.Region)
 	log.LogInfo("VPC info loaded from AWS by subnet: %s", subnetID)
 	return vpc, err
 }
@@ -82,7 +82,7 @@ func (vpc *VPC) DeleteVPCChain(totalClean ...bool) error {
 		log.LogError("Delete vpc proxy security group meets error: %s", err.Error())
 		return err
 	}
-	log.LogInfo("Delete vpc vpc proxy security group successfully")
+	log.LogInfo("Delete vpc proxy security group successfully")
 
 	err = vpc.DeleteVPCRouteTables(vpcID)
 	if err != nil {
@@ -136,7 +136,7 @@ func (vpc *VPC) DeleteVPCChain(totalClean ...bool) error {
 
 	_, err = vpc.AWSClient.DeleteVpc(vpc.VpcID)
 	if err != nil {
-		log.LogError("Delete vpc  meets error: %s", err.Error())
+		log.LogError("Delete vpc %s meets error: %s", vpc.VpcID, err.Error())
 		return err
 	}
 	return nil
@@ -153,8 +153,13 @@ func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting boo
 	if vpcCIDR == "" {
 		vpcCIDR = CON.DefaultVPCCIDR
 	}
-	log.LogInfo("Going to prepare a vpc with name %s, on region %s, with cidr %s and subnets on zones %s",
+	logMessage := fmt.Sprintf("Going to prepare a vpc with name %s, on region %s, with cidr %s and subnets on zones %s",
 		vpcName, region, vpcCIDR, strings.Join(zones, ","))
+	if len(zones) == 0 {
+		logMessage = fmt.Sprintf("Going to prepare a vpc with name %s, on region %s, with cidr %s ",
+			vpcName, region, vpcCIDR)
+	}
+	log.LogInfo(logMessage)
 	awsclient, err := aws_client.CreateAWSClient("", region)
 	if err != nil {
 		log.LogError("Create AWS Client due to error: %s", err.Error())
@@ -171,7 +176,7 @@ func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting boo
 			vpcID := *vpcs[0].VpcId
 			log.LogInfo("Got a vpc %s with name %s on region %s. Just load it for usage",
 				vpcID, vpcName, region)
-			vpc, err := GenerateVPCByID(awsclient, vpcID)
+			vpc, err := GenerateVPCByID(vpcID, region)
 			if err != nil {
 				log.LogError("Load vpc %s details meets error %s",
 					vpcID, err.Error())
@@ -212,7 +217,11 @@ func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting boo
 
 // GenerateVPCByID will return a VPC with CIDRpool and subnets
 // If you know the vpc ID on AWS, then try to generate it
-func GenerateVPCByID(awsClient *aws_client.AWSClient, vpcID string) (*VPC, error) {
+func GenerateVPCByID(vpcID string, region string) (*VPC, error) {
+	awsClient, err := aws_client.CreateAWSClient("", region)
+	if err != nil {
+		return nil, err
+	}
 	vpc := NewVPC().AWSclient(awsClient).ID(vpcID)
 	vpcResp, err := vpc.AWSClient.DescribeVPC(vpcID)
 	if err != nil {
@@ -241,11 +250,15 @@ func GenerateVPCByID(awsClient *aws_client.AWSClient, vpcID string) (*VPC, error
 
 // GenerateVPCBySubnet will return a VPC with CIDRpool and subnets based on one of the subnet ID
 // If you know the subnet ID on AWS, then try to generate it on AWS.
-func GenerateVPCBySubnet(awsClient *aws_client.AWSClient, subnetID string) (*VPC, error) {
+func GenerateVPCBySubnet(subnetID string, region string) (*VPC, error) {
+	awsClient, err := aws_client.CreateAWSClient("", region)
+	if err != nil {
+		return nil, err
+	}
 	subnetDetail, err := awsClient.ListSubnetDetail(subnetID)
 	if err != nil {
 		return nil, err
 	}
-	vpc, err := GenerateVPCByID(awsClient, *subnetDetail[0].VpcId)
+	vpc, err := GenerateVPCByID(*subnetDetail[0].VpcId, region)
 	return vpc, err
 }

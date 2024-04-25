@@ -230,15 +230,11 @@ func (vpc *VPC) CreatePairSubnet(zone string) (*VPC, []*Subnet, error) {
 // Otherwise it will create a pair.
 // If single one missing, it will create another one based on the zone
 func (vpc *VPC) PreparePairSubnetByZone(zone string) (map[string]*Subnet, error) {
-	log.LogInfo("Going to prepare")
+	log.LogInfo("Going to prepare proper pair of subnets")
 	result := map[string]*Subnet{}
 	for _, subnet := range vpc.SubnetList {
-		trimedSubnetZone := strings.Split(subnet.Zone, vpc.Region)[1] // Cannot use Trim because it will remove the whole string if the zone is ap-northeast-1a and region is ap-northeast-1
-		if trimedSubnetZone == "" {
-			log.LogError("Got empty trimed zone. But the subnet zone is: %s, vpc region is: %s", subnet.Zone, vpc.Region)
-		}
-		log.LogInfo("Subnet %s in zone: %s, and trimed zone %s and region %s", subnet.Name, subnet.Zone, trimedSubnetZone, vpc.Region)
-		if trimedSubnetZone == zone {
+		log.LogInfo("Subnet %s in zone: %s, region %s", subnet.ID, subnet.Zone, vpc.Region)
+		if subnet.Zone == zone {
 			if subnet.Private {
 				if _, ok := result["private"]; !ok {
 					log.LogInfo("Got private subnet %s and set it to the result", subnet.ID)
@@ -316,7 +312,7 @@ func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
 	}
 
 	subnetcidr := vpc.CIDRPool.Allocate().CIDR
-	respCreateSubnet, err := vpc.AWSClient.CreateSubnet(vpc.VpcID, vpc.Region, zone, subnetcidr)
+	respCreateSubnet, err := vpc.AWSClient.CreateSubnet(vpc.VpcID, zone, subnetcidr)
 	if err != nil {
 		log.LogError("create subnet error " + err.Error())
 		return nil, err
@@ -332,7 +328,7 @@ func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
 	subnet := &Subnet{
 		ID:      *respCreateSubnet.SubnetId,
 		Private: true,
-		Zone:    fmt.Sprintf(vpc.Region + zone),
+		Zone:    zone,
 		Cidr:    subnetcidr,
 		Region:  vpc.Region,
 		VpcID:   vpc.VpcID,

@@ -12,6 +12,7 @@ import (
 
 // LaunchProxyInstance will launch a proxy instance on the indicated zone.
 // If set imageID to empty, it will find the proxy image in the ProxyImageMap map
+// LaunchProxyInstance will return proxyInstance detail, privateIPAddress,CAcontent and error
 func (vpc *VPC) LaunchProxyInstance(imageID string, zone string, sshKey string) (types.Instance, string, string, error) {
 	var inst types.Instance
 	if imageID == "" {
@@ -102,7 +103,7 @@ func (vpc *VPC) CopyImageToProxy(name string) (destinationImageID string, err er
 }
 
 func (vpc *VPC) WaitImageToActive(imageID string, timeout time.Duration) (imageAvailable bool, err error) {
-
+	log.LogInfo("Waiting for image %s status to active. Timeout after %v mins", imageID, timeout)
 	startTime := time.Now()
 	imageAvailable = false
 	for time.Now().Before(startTime.Add(timeout * time.Minute)) {
@@ -115,7 +116,7 @@ func (vpc *VPC) WaitImageToActive(imageID string, timeout time.Duration) (imageA
 			imageAvailable = true
 			return imageAvailable, nil
 		}
-		log.LogInfo("Wait for image %s status to active", imageID)
+
 		time.Sleep(time.Minute)
 	}
 	err = fmt.Errorf("timeout for waiting image active")
