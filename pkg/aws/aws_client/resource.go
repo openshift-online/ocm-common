@@ -10,7 +10,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) ResourceExisting(resourceID string) bool {
+func (client *awsClient) ResourceExisting(resourceID string) bool {
 	splitedResource := strings.SplitN(resourceID, "-", 2) //Just split the first -
 	resourceType := splitedResource[0]
 	switch resourceType {
@@ -173,7 +173,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 	return false
 }
 
-func (client *AWSClient) ResourceDeleted(resourceID string) bool {
+func (client *awsClient) ResourceDeleted(resourceID string) bool {
 	var deleted bool = true
 	splitedResource := strings.Split(resourceID, "-")
 	resourceType := splitedResource[0]
@@ -310,7 +310,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 }
 
 // WaitForResourceExisting will wait for the resource created in <timeout> seconds
-func (client AWSClient) WaitForResourceExisting(resourceID string, timeout int) error {
+func (client *awsClient) WaitForResourceExisting(resourceID string, timeout int) error {
 	now := time.Now()
 	for now.Add(time.Duration(timeout) * time.Second).After(time.Now()) {
 		if client.ResourceExisting(resourceID) {
@@ -322,7 +322,7 @@ func (client AWSClient) WaitForResourceExisting(resourceID string, timeout int) 
 }
 
 // WaitForResourceExisting will wait for the resource created in <timeout> seconds
-func (client AWSClient) WaitForResourceDeleted(resourceID string, timeout int) error {
+func (client *awsClient) WaitForResourceDeleted(resourceID string, timeout int) error {
 	now := time.Now()
 	for now.Add(time.Duration(timeout) * time.Second).After(time.Now()) {
 		if client.ResourceDeleted(resourceID) {

@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) TagResource(resourceID string, tags map[string]string) (*ec2.CreateTagsOutput, error) {
+func (client *awsClient) TagResource(resourceID string, tags map[string]string) (*ec2.CreateTagsOutput, error) {
 	awsTags := []types.Tag{}
 	for key, value := range tags {
 		Key := key
@@ -33,7 +33,7 @@ func (client *AWSClient) TagResource(resourceID string, tags map[string]string) 
 	return output, err
 }
 
-func (client *AWSClient) RemoveResourceTag(resourceID string, tagKey string, tagValue string) (*ec2.DeleteTagsOutput, error) {
+func (client *awsClient) RemoveResourceTag(resourceID string, tagKey string, tagValue string) (*ec2.DeleteTagsOutput, error) {
 	tags := []types.Tag{
 		types.Tag{
 			Key:   &tagKey,

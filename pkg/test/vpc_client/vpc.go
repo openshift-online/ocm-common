@@ -11,7 +11,7 @@ import (
 )
 
 // GenerateVPCBySubnet will return a VPC with CIDRpool and subnets based on one of the subnet ID
-func (vpc *VPC) GenerateVPCBySubnet(subnetID string) (*VPC, error) {
+func (vpc *vpc) GenerateVPCBySubnet(subnetID string) (VPC, error) {
 	log.LogInfo("Trying to load vpc from AWS by subnet: %s", subnetID)
 	subnetDetail, err := vpc.AWSClient.ListSubnetDetail(subnetID)
 	if err != nil {
@@ -19,7 +19,7 @@ func (vpc *VPC) GenerateVPCBySubnet(subnetID string) (*VPC, error) {
 		return nil, err
 	}
 	log.LogInfo("Subnet info loaded from AWS by subnet: %s", subnetID)
-	vpc, err = GenerateVPCByID(*subnetDetail[0].VpcId, vpc.Region)
+	_, err = GenerateVPCByID(*subnetDetail[0].VpcId, vpc.Region)
 	log.LogInfo("VPC info loaded from AWS by subnet: %s", subnetID)
 	return vpc, err
 }
@@ -32,7 +32,7 @@ func (vpc *VPC) GenerateVPCBySubnet(subnetID string) (*VPC, error) {
 //	zone is a slice. If only one subnet should be created, the first zone should be selected. If this value is empty, the default zone is "a".
 //	If success, a VPC struct containing the ids of the created resources and nil.
 //	Otherwise, nil and an error from the call.
-func (vpc *VPC) CreateVPCChain(zones ...string) (*VPC, error) {
+func (vpc *vpc) CreateVPCChain(zones ...string) (VPC, error) {
 	log.LogInfo("Going to create vpc and the follow resources on zones: %s", strings.Join(zones, ","))
 	respVpc, err := vpc.AWSClient.CreateVpc(vpc.CIDRValue, vpc.VPCName)
 	if err != nil {
@@ -46,7 +46,7 @@ func (vpc *VPC) CreateVPCChain(zones ...string) (*VPC, error) {
 		return nil, err
 	}
 	log.LogInfo("VPC DNS Updated on AWS with id: %s", *respVpc.Vpc.VpcId)
-	vpc = vpc.ID(*respVpc.Vpc.VpcId)
+	vpc.ID(*respVpc.Vpc.VpcId)
 	_, err = vpc.PrepareInternetGateway()
 	if err != nil {
 		log.LogError("Prepare Vpc internet gateway failed: %s ", err.Error())
@@ -62,7 +62,7 @@ func (vpc *VPC) CreateVPCChain(zones ...string) (*VPC, error) {
 	return vpc, err
 }
 
-func (vpc *VPC) DeleteVPCChain(totalClean ...bool) error {
+func (vpc *vpc) DeleteVPCChain(totalClean ...bool) error {
 	vpcID := vpc.VpcID
 	if vpcID == "" {
 		return fmt.Errorf("got empty vpc ID to clean. Make sure you loaded it from AWS")
@@ -149,7 +149,7 @@ func (vpc *VPC) DeleteVPCChain(totalClean ...bool) error {
 // Just be careful once you use checkExisting, the vpc may have subnets not existing in your zones. And maybe multi subnets in the zones
 // Try vpc.PreparePairSubnets by zone for further implementation to get a pair of
 // Zones will be customized if you want. Otherwise, it will use the default zone "a"
-func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting bool, zones ...string) (*VPC, error) {
+func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting bool, zones ...string) (VPC, error) {
 	if vpcCIDR == "" {
 		vpcCIDR = CON.DefaultVPCCIDR
 	}
@@ -217,17 +217,17 @@ func PrepareVPC(vpcName string, region string, vpcCIDR string, checkExisting boo
 
 // GenerateVPCByID will return a VPC with CIDRpool and subnets
 // If you know the vpc ID on AWS, then try to generate it
-func GenerateVPCByID(vpcID string, region string) (*VPC, error) {
+func GenerateVPCByID(vpcID string, region string) (VPC, error) {
 	awsClient, err := aws_client.CreateAWSClient("", region)
 	if err != nil {
 		return nil, err
 	}
 	vpc := NewVPC().AWSclient(awsClient).ID(vpcID)
-	vpcResp, err := vpc.AWSClient.DescribeVPC(vpcID)
+	vpcResp, err := awsClient.DescribeVPC(vpcID)
 	if err != nil {
 		return nil, err
 	}
-	vpc = vpc.Name(getTagName((vpcResp.Tags))).SetRegion(awsClient.Region).CIDR(*vpcResp.CidrBlock)
+	vpc = vpc.Name(getTagName((vpcResp.Tags))).SetRegion(awsClient.GetRegion()).CIDR(*vpcResp.CidrBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -236,21 +236,21 @@ func GenerateVPCByID(vpcID string, region string) (*VPC, error) {
 		return nil, err
 	}
 	reservedCIDRs := []string{}
-	for _, sub := range vpc.SubnetList {
+	for _, sub := range vpc.GetSubnetsList() {
 		reservedCIDRs = append(reservedCIDRs, sub.Cidr)
 	}
-	cidrPool := NewCIDRPool(vpc.CIDRValue)
+	cidrPool := NewCIDRPool(vpc.GetCIDRValue())
 	err = cidrPool.Reserve(reservedCIDRs...)
 	if err != nil {
 		return nil, err
 	}
-	vpc.CIDRPool = cidrPool
+	vpc.CIDRpool(cidrPool)
 	return vpc, nil
 }
 
 // GenerateVPCBySubnet will return a VPC with CIDRpool and subnets based on one of the subnet ID
 // If you know the subnet ID on AWS, then try to generate it on AWS.
-func GenerateVPCBySubnet(subnetID string, region string) (*VPC, error) {
+func GenerateVPCBySubnet(subnetID string, region string) (VPC, error) {
 	awsClient, err := aws_client.CreateAWSClient("", region)
 	if err != nil {
 		return nil, err

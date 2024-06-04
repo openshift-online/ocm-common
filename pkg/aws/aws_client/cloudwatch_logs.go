@@ -7,7 +7,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) DescribeLogGroupsByName(logGroupName string) (*cloudwatchlogs.DescribeLogGroupsOutput, error) {
+func (client *awsClient) DescribeLogGroupsByName(logGroupName string) (*cloudwatchlogs.DescribeLogGroupsOutput, error) {
 	output, err := client.CloudWatchLogsClient.DescribeLogGroups(context.TODO(), &cloudwatchlogs.DescribeLogGroupsInput{
 		LogGroupNamePrefix: &logGroupName,
 	})
@@ -17,7 +17,7 @@ func (client *AWSClient) DescribeLogGroupsByName(logGroupName string) (*cloudwat
 	return output, err
 }
 
-func (client *AWSClient) DescribeLogStreamByName(logGroupName string) (*cloudwatchlogs.DescribeLogStreamsOutput, error) {
+func (client *awsClient) DescribeLogStreamByName(logGroupName string) (*cloudwatchlogs.DescribeLogStreamsOutput, error) {
 	output, err := client.CloudWatchLogsClient.DescribeLogStreams(context.TODO(), &cloudwatchlogs.DescribeLogStreamsInput{
 		LogGroupName: &logGroupName,
 	})
@@ -27,7 +27,7 @@ func (client *AWSClient) DescribeLogStreamByName(logGroupName string) (*cloudwat
 	return output, err
 }
 
-func (client *AWSClient) DeleteLogGroupByName(logGroupName string) (*cloudwatchlogs.DeleteLogGroupOutput, error) {
+func (client *awsClient) DeleteLogGroupByName(logGroupName string) (*cloudwatchlogs.DeleteLogGroupOutput, error) {
 	output, err := client.CloudWatchLogsClient.DeleteLogGroup(context.TODO(), &cloudwatchlogs.DeleteLogGroupInput{
 		LogGroupName: &logGroupName,
 	})

@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) DescribeNetWorkInterface(vpcID string) ([]types.NetworkInterface, error) {
+func (client *awsClient) DescribeNetWorkInterface(vpcID string) ([]types.NetworkInterface, error) {
 	vpcFilter := "vpc-id"
 	filter := []types.Filter{
 		types.Filter{
@@ -28,7 +28,7 @@ func (client *AWSClient) DescribeNetWorkInterface(vpcID string) ([]types.Network
 	return resp.NetworkInterfaces, err
 }
 
-func (client *AWSClient) DeleteNetworkInterface(networkinterface types.NetworkInterface) error {
+func (client *awsClient) DeleteNetworkInterface(networkinterface types.NetworkInterface) error {
 	association := networkinterface.Association
 	if association != nil {
 		if association.AllocationId != nil {

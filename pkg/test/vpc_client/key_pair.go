@@ -5,7 +5,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (vpc *VPC) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput, error) {
+func (vpc *vpc) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput, error) {
 	output, err := vpc.AWSClient.CreateKeyPair(keyName)
 	if err != nil {
 		return nil, err
@@ -15,7 +15,7 @@ func (vpc *VPC) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput, error) 
 	return output, nil
 }
 
-func (vpc *VPC) DeleteKeyPair(keyNames []string) error {
+func (vpc *vpc) DeleteKeyPair(keyNames []string) error {
 	for _, key := range keyNames {
 		_, err := vpc.AWSClient.DeleteKeyPair(key)
 		if err != nil {

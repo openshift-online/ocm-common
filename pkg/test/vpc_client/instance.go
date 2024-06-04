@@ -7,7 +7,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (vpc *VPC) TerminateVPCInstances(nonClusterOnly bool) error {
+func (vpc *vpc) TerminateVPCInstances(nonClusterOnly bool) error {
 	filters := []map[string][]string{
 		{
 			"vpc-id": []string{

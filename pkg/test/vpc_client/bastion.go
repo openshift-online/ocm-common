@@ -12,7 +12,7 @@ import (
 
 // LaunchBastion will launch a bastion instance on the indicated zone.
 // If set imageID to empty, it will find the bastion image in the bastionImageMap map
-func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, error) {
+func (vpc *vpc) LaunchBastion(imageID string, zone string) (*types.Instance, error) {
 	var inst *types.Instance
 	if imageID == "" {
 		var ok bool
@@ -67,7 +67,7 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, err
 	return inst, nil
 }
 
-func (vpc *VPC) PrepareBastion(zone string) (*types.Instance, error) {
+func (vpc *vpc) PrepareBastion(zone string) (*types.Instance, error) {
 	filters := []map[string][]string{
 		{
 			"vpc-id": {

@@ -45,7 +45,7 @@ func (subnet *Subnet) IsNatgatwatEnabled() bool {
 // PrepareNatGatway will return a NAT gateway if existing no matter which zone set
 // zone only work when create public subnet once no NAT gate way existing
 // Will implement zone supporting for nat gateway in future. But for now, there is no requirement
-func (vpc *VPC) PrepareNatGatway(zone string) (types.NatGateway, error) {
+func (vpc *vpc) PrepareNatGatway(zone string) (types.NatGateway, error) {
 	var gateWay types.NatGateway
 	natGatways, err := vpc.AWSClient.ListNatGateWays(vpc.VpcID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (vpc *VPC) PrepareNatGatway(zone string) (types.NatGateway, error) {
 
 	return gateWay, err
 }
-func (vpc *VPC) PreparePublicSubnet(zone string) (*Subnet, error) {
+func (vpc *vpc) PreparePublicSubnet(zone string) (*Subnet, error) {
 	if vpc.SubnetList != nil {
 		for _, subnet := range vpc.SubnetList {
 			if !subnet.Private {
@@ -100,7 +100,7 @@ func (vpc *VPC) PreparePublicSubnet(zone string) (*Subnet, error) {
 
 // CreatePrivateSubnet will create a private subnet
 // if natEnabled then , it will prepare a public subnet and create a NATgatway to the public subnet
-func (vpc *VPC) CreatePrivateSubnet(zone string, natEnabled bool) (*Subnet, error) {
+func (vpc *vpc) CreatePrivateSubnet(zone string, natEnabled bool) (*Subnet, error) {
 	subNetName := strings.Join([]string{
 		vpc.VPCName,
 		"private",
@@ -159,7 +159,7 @@ func (vpc *VPC) CreatePrivateSubnet(zone string, natEnabled bool) (*Subnet, erro
 //
 //	If success, a Subnet struct containing the subnetID, private=false, subnetCidr, region, zone and VpcID.
 //	Otherwise, nil and an error from the call.
-func (vpc *VPC) CreatePublicSubnet(zone string) (*Subnet, error) {
+func (vpc *vpc) CreatePublicSubnet(zone string) (*Subnet, error) {
 	subNetName := strings.Join([]string{
 		vpc.VPCName,
 		"public",
@@ -212,7 +212,7 @@ func (vpc *VPC) CreatePublicSubnet(zone string) (*Subnet, error) {
 //
 //	If success, a VPC struct containing the ids of the created resources and nil.
 //	Otherwise, nil and an error from the call.
-func (vpc *VPC) CreatePairSubnet(zone string) (*VPC, []*Subnet, error) {
+func (vpc *vpc) CreatePairSubnet(zone string) (VPC, []*Subnet, error) {
 	publicSubnet, err := vpc.CreatePublicSubnet(zone)
 	if err != nil {
 		log.LogError("Create public subnet failed" + err.Error())
@@ -229,7 +229,7 @@ func (vpc *VPC) CreatePairSubnet(zone string) (*VPC, []*Subnet, error) {
 // PreparePairSubnetByZone will return current pair subents once existing,
 // Otherwise it will create a pair.
 // If single one missing, it will create another one based on the zone
-func (vpc *VPC) PreparePairSubnetByZone(zone string) (map[string]*Subnet, error) {
+func (vpc *vpc) PreparePairSubnetByZone(zone string) (map[string]*Subnet, error) {
 	log.LogInfo("Going to prepare proper pair of subnets")
 	result := map[string]*Subnet{}
 	for _, subnet := range vpc.SubnetList {
@@ -287,7 +287,7 @@ func (vpc *VPC) PreparePairSubnetByZone(zone string) (map[string]*Subnet, error)
 //
 //	If success, a VPC struct containing the ids of the created resources and nil.
 //	Otherwise, nil and an error from the call.
-func (vpc *VPC) CreateMultiZoneSubnet(zones ...string) error {
+func (vpc *vpc) CreateMultiZoneSubnet(zones ...string) error {
 	var wg sync.WaitGroup
 	var err error
 	for index, zone := range zones {
@@ -306,7 +306,7 @@ func (vpc *VPC) CreateMultiZoneSubnet(zones ...string) error {
 	return err
 }
 
-func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
+func (vpc *vpc) CreateSubnet(zone string) (*Subnet, error) {
 	if zone == "" {
 		zone = CON.DefaultAWSZone
 	}
@@ -338,7 +338,7 @@ func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
 }
 
 // ListIndicatedSubnetsByVPC will returns the indicated type of subnets like public, private
-func (vpc *VPC) ListIndicatedSubnetsByVPC(private bool) ([]string, error) {
+func (vpc *vpc) ListIndicatedSubnetsByVPC(private bool) ([]string, error) {
 	results := []string{}
 	subnetDetails, err := vpc.ListSubnets()
 	if err != nil {
@@ -354,7 +354,7 @@ func (vpc *VPC) ListIndicatedSubnetsByVPC(private bool) ([]string, error) {
 }
 
 // ListIndicatedSubnetsByVPC will returns the indicated type of subnets like public, private
-func (vpc *VPC) FindIndicatedSubnetsBysubnets(private bool, subnetIDs ...string) ([]string, error) {
+func (vpc *vpc) FindIndicatedSubnetsBysubnets(private bool, subnetIDs ...string) ([]string, error) {
 	subnets, err := vpc.ListSubnets()
 	if err != nil {
 		return nil, err
@@ -371,7 +371,7 @@ func (vpc *VPC) FindIndicatedSubnetsBysubnets(private bool, subnetIDs ...string)
 	return results, nil
 }
 
-func (vpc *VPC) DeleteVPCSubnets() error {
+func (vpc *vpc) DeleteVPCSubnets() error {
 	subnets, err := vpc.AWSClient.ListSubnetByVpcID(vpc.VpcID)
 	if err != nil {
 		return err
@@ -385,7 +385,7 @@ func (vpc *VPC) DeleteVPCSubnets() error {
 	return nil
 }
 
-func (vpc *VPC) ListSubnets() ([]*Subnet, error) {
+func (vpc *vpc) ListSubnets() ([]*Subnet, error) {
 	log.LogInfo("Trying to list subnets of the vpc")
 	subnets := []*Subnet{}
 	awsSubnets, err := vpc.AWSClient.ListSubnetByVpcID(vpc.VpcID)
@@ -419,7 +419,7 @@ func (vpc *VPC) ListSubnets() ([]*Subnet, error) {
 
 // UniqueSubnet will return a unique subnet by the subnetID
 // It contains more values including the CIDR values
-func (vpc *VPC) UniqueSubnet(subnetID string) *Subnet {
+func (vpc *vpc) UniqueSubnet(subnetID string) *Subnet {
 	var subnet *Subnet
 	for _, sub := range vpc.SubnetList {
 		if sub.ID == subnetID {
@@ -431,7 +431,7 @@ func (vpc *VPC) UniqueSubnet(subnetID string) *Subnet {
 }
 
 // AllSubnetIDs will return all if the subnet IDs of the vpc instance
-func (vpc *VPC) AllSubnetIDs() []string {
+func (vpc *vpc) AllSubnetIDs() []string {
 	subnetIDs := []string{}
 	for _, subnet := range vpc.SubnetList {
 		subnetIDs = append(subnetIDs, subnet.ID)
@@ -440,7 +440,7 @@ func (vpc *VPC) AllSubnetIDs() []string {
 }
 
 // AllPublicSubnetIDs will return all of the subnet IDs in vpc instance
-func (vpc *VPC) AllPublicSubnetIDs() []string {
+func (vpc *vpc) AllPublicSubnetIDs() []string {
 	subnetIDs := []string{}
 	for _, subnet := range vpc.SubnetList {
 		if !subnet.Private {
@@ -451,7 +451,7 @@ func (vpc *VPC) AllPublicSubnetIDs() []string {
 }
 
 // AllPublicSubnetIDs will return all of the subnet IDs in vpc instance
-func (vpc *VPC) AllPrivateSubnetIDs() []string {
+func (vpc *vpc) AllPrivateSubnetIDs() []string {
 	subnetIDs := []string{}
 	for _, subnet := range vpc.SubnetList {
 		if subnet.Private {

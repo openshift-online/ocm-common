@@ -9,7 +9,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) CreateNatGateway(subnetID string, allocationID string, vpcID string) (*ec2.CreateNatGatewayOutput, error) {
+func (client *awsClient) CreateNatGateway(subnetID string, allocationID string, vpcID string) (*ec2.CreateNatGatewayOutput, error) {
 	inputCreateNat := &ec2.CreateNatGatewayInput{
 		SubnetId:          aws.String(subnetID),
 		AllocationId:      aws.String(allocationID),
@@ -29,7 +29,7 @@ func (client *AWSClient) CreateNatGateway(subnetID string, allocationID string, 
 }
 
 // DeleteNatGateway will wait for <timeout> seconds for nat gateway becomes status of deleted
-func (client *AWSClient) DeleteNatGateway(natGatewayID string, timeout ...int) (*ec2.DeleteNatGatewayOutput, error) {
+func (client *awsClient) DeleteNatGateway(natGatewayID string, timeout ...int) (*ec2.DeleteNatGatewayOutput, error) {
 	inputDeleteNatGateway := &ec2.DeleteNatGatewayInput{
 		NatGatewayId: aws.String(natGatewayID),
 		DryRun:       nil,
@@ -51,7 +51,7 @@ func (client *AWSClient) DeleteNatGateway(natGatewayID string, timeout ...int) (
 	return respDeleteNatGateway, err
 }
 
-func (client *AWSClient) ListNatGateWays(vpcID string) ([]types.NatGateway, error) {
+func (client *awsClient) ListNatGateWays(vpcID string) ([]types.NatGateway, error) {
 	vpcFilter := "vpc-id"
 	filter := []types.Filter{
 		types.Filter{

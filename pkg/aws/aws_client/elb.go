@@ -9,7 +9,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) DescribeLoadBalancers(vpcID string) ([]elbtypes.LoadBalancerDescription, error) {
+func (client *awsClient) DescribeLoadBalancers(vpcID string) ([]elbtypes.LoadBalancerDescription, error) {
 
 	listenedELB := []elbtypes.LoadBalancerDescription{}
 	input := &elb.DescribeLoadBalancersInput{}
@@ -30,7 +30,7 @@ func (client *AWSClient) DescribeLoadBalancers(vpcID string) ([]elbtypes.LoadBal
 	return listenedELB, err
 }
 
-func (client *AWSClient) DeleteELB(ELB elbtypes.LoadBalancerDescription) error {
+func (client *awsClient) DeleteELB(ELB elbtypes.LoadBalancerDescription) error {
 	log.LogInfo("Goint to delete ELB %s", *ELB.LoadBalancerName)
 
 	deleteELBInput := &elb.DeleteLoadBalancerInput{

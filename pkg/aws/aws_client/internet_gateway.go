@@ -9,7 +9,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) CreateInternetGateway() (*ec2.CreateInternetGatewayOutput, error) {
+func (client *awsClient) CreateInternetGateway() (*ec2.CreateInternetGatewayOutput, error) {
 	inputCreateInternetGateway := &ec2.CreateInternetGatewayInput{
 		DryRun:            nil,
 		TagSpecifications: nil,
@@ -23,7 +23,7 @@ func (client *AWSClient) CreateInternetGateway() (*ec2.CreateInternetGatewayOutp
 	return respCreateInternetGateway, err
 }
 
-func (client *AWSClient) AttachInternetGateway(internetGatewayID string, vpcID string) (*ec2.AttachInternetGatewayOutput, error) {
+func (client *awsClient) AttachInternetGateway(internetGatewayID string, vpcID string) (*ec2.AttachInternetGatewayOutput, error) {
 
 	input := &ec2.AttachInternetGatewayInput{
 		InternetGatewayId: aws.String(internetGatewayID),
@@ -39,7 +39,7 @@ func (client *AWSClient) AttachInternetGateway(internetGatewayID string, vpcID s
 	return resp, err
 }
 
-func (client *AWSClient) DetachInternetGateway(internetGatewayID string, vpcID string) (*ec2.DetachInternetGatewayOutput, error) {
+func (client *awsClient) DetachInternetGateway(internetGatewayID string, vpcID string) (*ec2.DetachInternetGatewayOutput, error) {
 	input := &ec2.DetachInternetGatewayInput{
 		InternetGatewayId: aws.String(internetGatewayID),
 		VpcId:             aws.String(vpcID),
@@ -53,7 +53,7 @@ func (client *AWSClient) DetachInternetGateway(internetGatewayID string, vpcID s
 	log.LogInfo("Detach igw %s success from vpc %s", internetGatewayID, vpcID)
 	return resp, err
 }
-func (client *AWSClient) ListInternetGateWay(vpcID string) ([]types.InternetGateway, error) {
+func (client *awsClient) ListInternetGateWay(vpcID string) ([]types.InternetGateway, error) {
 	vpcFilter := "attachment.vpc-id"
 	filter := []types.Filter{
 		types.Filter{
@@ -72,7 +72,7 @@ func (client *AWSClient) ListInternetGateWay(vpcID string) ([]types.InternetGate
 	}
 	return resp.InternetGateways, err
 }
-func (client *AWSClient) DeleteInternetGateway(internetGatewayID string) (*ec2.DeleteInternetGatewayOutput, error) {
+func (client *awsClient) DeleteInternetGateway(internetGatewayID string) (*ec2.DeleteInternetGatewayOutput, error) {
 	inputDeleteInternetGateway := &ec2.DeleteInternetGatewayInput{
 		InternetGatewayId: aws.String(internetGatewayID),
 		DryRun:            nil,

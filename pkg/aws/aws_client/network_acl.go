@@ -10,7 +10,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) ListNetWorkAcls(vpcID string) ([]types.NetworkAcl, error) {
+func (client *awsClient) ListNetWorkAcls(vpcID string) ([]types.NetworkAcl, error) {
 	vpcFilter := "vpc-id"
 	customizedAcls := []types.NetworkAcl{}
 	filter := []types.Filter{
@@ -34,7 +34,7 @@ func (client *AWSClient) ListNetWorkAcls(vpcID string) ([]types.NetworkAcl, erro
 
 // RuleAction : deny/allow
 // Protocol: TCP --> 6
-func (client *AWSClient) AddNetworkAclEntry(networkAclId string, egress bool, protocol string, ruleAction string, ruleNumber int32, fromPort int32, toPort int32, cidrBlock string) (*ec2.CreateNetworkAclEntryOutput, error) {
+func (client *awsClient) AddNetworkAclEntry(networkAclId string, egress bool, protocol string, ruleAction string, ruleNumber int32, fromPort int32, toPort int32, cidrBlock string) (*ec2.CreateNetworkAclEntryOutput, error) {
 	input := &ec2.CreateNetworkAclEntryInput{
 		Egress:       aws.Bool(egress),
 		NetworkAclId: aws.String(networkAclId),
@@ -56,7 +56,7 @@ func (client *AWSClient) AddNetworkAclEntry(networkAclId string, egress bool, pr
 	return resp, err
 }
 
-func (client *AWSClient) DeleteNetworkAclEntry(networkAclId string, egress bool, ruleNumber int32) (*ec2.DeleteNetworkAclEntryOutput, error) {
+func (client *awsClient) DeleteNetworkAclEntry(networkAclId string, egress bool, ruleNumber int32) (*ec2.DeleteNetworkAclEntryOutput, error) {
 	input := &ec2.DeleteNetworkAclEntryInput{
 		Egress:       aws.Bool(egress),
 		NetworkAclId: aws.String(networkAclId),

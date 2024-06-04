@@ -33,7 +33,7 @@ type Subnet struct {
 }
 
 func NewSubnet() *Subnet {
-	return &(Subnet{})
+	return &Subnet{}
 }
 func (subnet *Subnet) SetID(id string) *Subnet {
 	subnet.ID = id
@@ -71,8 +71,43 @@ func (subnet *Subnet) SetName(name string) *Subnet {
 }
 
 // **************************** VPC ******************************
-type VPC struct {
-	AWSClient  *aws_client.AWSClient
+type VPC interface {
+	Name(name string) VPC
+	ID(id string) VPC
+	AWSclient(awsClient aws_client.AWSClient) VPC
+	CIDR(cidr string) VPC
+	CIDRpool(cidrPool *VPCCIDRPool) VPC
+	NewCIDRPool() VPC
+	Subnets(subnet ...*Subnet) VPC
+	SetRegion(region string) VPC
+
+	GetSubnetsList() []*Subnet
+	GetCIDRValue() string
+
+	GenerateVPCBySubnet(subnetID string) (VPC, error)
+	CreateVPCChain(zones ...string) (VPC, error)
+	DeleteVPCChain(totalClean ...bool) error
+
+	PrepareNatGatway(zone string) (types.NatGateway, error)
+	PreparePublicSubnet(zone string) (*Subnet, error)
+	CreatePrivateSubnet(zone string, natEnabled bool) (*Subnet, error)
+	CreatePublicSubnet(zone string) (*Subnet, error)
+	CreatePairSubnet(zone string) (VPC, []*Subnet, error)
+	PreparePairSubnetByZone(zone string) (map[string]*Subnet, error)
+	CreateMultiZoneSubnet(zones ...string) error
+	CreateSubnet(zone string) (*Subnet, error)
+	ListIndicatedSubnetsByVPC(private bool) ([]string, error)
+	FindIndicatedSubnetsBysubnets(private bool, subnetIDs ...string) ([]string, error)
+	DeleteVPCSubnets() error
+	ListSubnets() ([]*Subnet, error)
+	UniqueSubnet(subnetID string) *Subnet
+	AllSubnetIDs() []string
+	AllPublicSubnetIDs() []string
+	AllPrivateSubnetIDs() []string
+}
+
+type vpc struct {
+	AWSClient  aws_client.AWSClient
 	VpcID      string
 	VPCName    string
 	CIDRValue  string
@@ -81,44 +116,51 @@ type VPC struct {
 	Region     string
 }
 
-func NewVPC() *VPC {
-	vpc := &VPC{}
-	return vpc
+func NewVPC() VPC {
+	return &vpc{}
 }
 
-func (vpc *VPC) Name(name string) *VPC {
+func (vpc *vpc) Name(name string) VPC {
 	vpc.VPCName = name
 	return vpc
 }
-func (vpc *VPC) ID(id string) *VPC {
+func (vpc *vpc) ID(id string) VPC {
 	vpc.VpcID = id
 	return vpc
 }
 
-func (vpc *VPC) AWSclient(awsClient *aws_client.AWSClient) *VPC {
+func (vpc *vpc) AWSclient(awsClient aws_client.AWSClient) VPC {
 	vpc.AWSClient = awsClient
 	return vpc
 }
 
-func (vpc *VPC) CIDR(cidr string) *VPC {
+func (vpc *vpc) CIDR(cidr string) VPC {
 	vpc.CIDRValue = cidr
 	return vpc
 }
 
-func (vpc *VPC) CIDRpool(cidrPool *VPCCIDRPool) *VPC {
+func (vpc *vpc) CIDRpool(cidrPool *VPCCIDRPool) VPC {
 	vpc.CIDRPool = cidrPool
 	return vpc
 }
-func (vpc *VPC) NewCIDRPool() *VPC {
+func (vpc *vpc) NewCIDRPool() VPC {
 	vpc.CIDRPool = NewCIDRPool(vpc.CIDRValue)
 	return vpc
 }
 
-func (vpc *VPC) Subnets(subnet ...*Subnet) *VPC {
+func (vpc *vpc) Subnets(subnet ...*Subnet) VPC {
 	vpc.SubnetList = subnet
 	return vpc
 }
-func (vpc *VPC) SetRegion(region string) *VPC {
+func (vpc *vpc) SetRegion(region string) VPC {
 	vpc.Region = region
 	return vpc
+}
+
+func (vpc *vpc) GetSubnetsList() []*Subnet {
+	return vpc.SubnetList
+}
+
+func (vpc *vpc) GetCIDRValue() string {
+	return vpc.CIDRValue
 }

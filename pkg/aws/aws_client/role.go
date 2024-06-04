@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 )
 
-func (client *AWSClient) CreateRole(roleName string,
+func (client *awsClient) CreateRole(roleName string,
 	assumeRolePolicyDocument string,
 	permissionBoundry string,
 	tags map[string]string,
@@ -48,14 +48,14 @@ func (client *AWSClient) CreateRole(roleName string,
 	return *resp.Role, err
 }
 
-func (client *AWSClient) GetRole(roleName string) (*types.Role, error) {
+func (client *awsClient) GetRole(roleName string) (*types.Role, error) {
 	input := &iam.GetRoleInput{
 		RoleName: &roleName,
 	}
 	out, err := client.IamClient.GetRole(context.TODO(), input)
 	return out.Role, err
 }
-func (client *AWSClient) DeleteRole(roleName string) error {
+func (client *awsClient) DeleteRole(roleName string) error {
 
 	input := &iam.DeleteRoleInput{
 		RoleName: &roleName,
@@ -64,7 +64,7 @@ func (client *AWSClient) DeleteRole(roleName string) error {
 	return err
 }
 
-func (client *AWSClient) DeleteRoleAndPolicy(roleName string, managedPolicy bool) error {
+func (client *awsClient) DeleteRoleAndPolicy(roleName string, managedPolicy bool) error {
 	input := &iam.ListAttachedRolePoliciesInput{
 		RoleName: &roleName,
 	}
@@ -91,13 +91,13 @@ func (client *AWSClient) DeleteRoleAndPolicy(roleName string, managedPolicy bool
 	return err
 }
 
-func (client *AWSClient) ListRoles() ([]types.Role, error) {
+func (client *awsClient) ListRoles() ([]types.Role, error) {
 	input := &iam.ListRolesInput{}
 	out, err := client.IamClient.ListRoles(context.TODO(), input)
 	return out.Roles, err
 }
 
-func (client *AWSClient) IsPolicyAttachedToRole(roleName string, policyArn string) (bool, error) {
+func (client *awsClient) IsPolicyAttachedToRole(roleName string, policyArn string) (bool, error) {
 	policies, err := client.ListAttachedRolePolicies(roleName)
 	if err != nil {
 		return false, err
@@ -110,7 +110,7 @@ func (client *AWSClient) IsPolicyAttachedToRole(roleName string, policyArn strin
 	return false, nil
 }
 
-func (client *AWSClient) ListAttachedRolePolicies(roleName string) ([]types.AttachedPolicy, error) {
+func (client *awsClient) ListAttachedRolePolicies(roleName string) ([]types.AttachedPolicy, error) {
 	policies := []types.AttachedPolicy{}
 	policyLister := iam.ListAttachedRolePoliciesInput{
 		RoleName: &roleName,
@@ -122,7 +122,7 @@ func (client *AWSClient) ListAttachedRolePolicies(roleName string) ([]types.Atta
 	return policyOut.AttachedPolicies, nil
 }
 
-func (client *AWSClient) DetachRolePolicies(roleName string) error {
+func (client *awsClient) DetachRolePolicies(roleName string) error {
 	policies, err := client.ListAttachedRolePolicies(roleName)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (client *AWSClient) DetachRolePolicies(roleName string) error {
 	return nil
 }
 
-func (client *AWSClient) DeleteRoleInstanceProfiles(roleName string) error {
+func (client *awsClient) DeleteRoleInstanceProfiles(roleName string) error {
 	inProfileLister := iam.ListInstanceProfilesForRoleInput{
 		RoleName: &roleName,
 	}
@@ -162,7 +162,7 @@ func (client *AWSClient) DeleteRoleInstanceProfiles(roleName string) error {
 	return nil
 }
 
-func (client *AWSClient) CreateIAMRole(roleName string, ProdENVTrustedRole string, StageENVTrustedRole string, StageIssuerTrustedRole string,
+func (client *awsClient) CreateIAMRole(roleName string, ProdENVTrustedRole string, StageENVTrustedRole string, StageIssuerTrustedRole string,
 	externalID ...string) (types.Role, error) {
 	statement := map[string]interface{}{
 		"Effect": "Allow",
@@ -194,7 +194,7 @@ func (client *AWSClient) CreateIAMRole(roleName string, ProdENVTrustedRole strin
 	return client.CreateRole(roleName, string(assumeRolePolicyDocument), "", make(map[string]string), "/")
 }
 
-func (client *AWSClient) CreateRegularRole(roleName string) (types.Role, error) {
+func (client *awsClient) CreateRegularRole(roleName string) (types.Role, error) {
 
 	statement := map[string]interface{}{
 		"Effect": "Allow",
@@ -212,7 +212,7 @@ func (client *AWSClient) CreateRegularRole(roleName string) (types.Role, error) 
 	return client.CreateRole(roleName, assumeRolePolicyDocument, "", make(map[string]string), "/")
 }
 
-func (client *AWSClient) CreateRoleForAuditLogForward(roleName, awsAccountID string, oidcEndpointURL string) (types.Role, error) {
+func (client *awsClient) CreateRoleForAuditLogForward(roleName, awsAccountID string, oidcEndpointURL string) (types.Role, error) {
 	statement := map[string]interface{}{
 		"Effect": "Allow",
 		"Principal": map[string]interface{}{
@@ -235,7 +235,7 @@ func (client *AWSClient) CreateRoleForAuditLogForward(roleName, awsAccountID str
 	return client.CreateRole(roleName, string(assumeRolePolicyDocument), "", make(map[string]string), "/")
 }
 
-func (client *AWSClient) CreatePolicy(policyName string, statements ...map[string]interface{}) (string, error) {
+func (client *awsClient) CreatePolicy(policyName string, statements ...map[string]interface{}) (string, error) {
 	timeCreation := time.Now().Local().String()
 	description := fmt.Sprintf("Created by OCM QE at %s", timeCreation)
 	document := map[string]interface{}{
@@ -266,7 +266,7 @@ func (client *AWSClient) CreatePolicy(policyName string, statements ...map[strin
 	return policyArn, err
 }
 
-func (client *AWSClient) CreatePolicyForAuditLogForward(policyName string) (string, error) {
+func (client *awsClient) CreatePolicyForAuditLogForward(policyName string) (string, error) {
 
 	statement := map[string]interface{}{
 		"Effect":   "Allow",

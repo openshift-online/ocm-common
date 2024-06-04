@@ -1,6 +1,6 @@
 package vpc_client
 
-func (vpc *VPC) DescribeSubnetRTMappings(subnets ...*Subnet) error {
+func (vpc *vpc) DescribeSubnetRTMappings(subnets ...*Subnet) error {
 	rts, err := vpc.AWSClient.ListCustomerRouteTables(vpc.VpcID)
 	if err != nil {
 		return err
@@ -13,7 +13,7 @@ func (vpc *VPC) DescribeSubnetRTMappings(subnets ...*Subnet) error {
 }
 
 // DeleteVPCRouteTables will delete all of route table resources including associations and routes
-func (vpc *VPC) DeleteVPCRouteTables(vpcID string) error {
+func (vpc *vpc) DeleteVPCRouteTables(vpcID string) error {
 	rts, err := vpc.AWSClient.ListCustomerRouteTables(vpcID)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (vpc *VPC) DeleteVPCRouteTables(vpcID string) error {
 	return nil
 }
 
-func (vpc *VPC) DeleteRouteTableChains(routeTables ...string) error {
+func (vpc *vpc) DeleteRouteTableChains(routeTables ...string) error {
 	for _, routeTable := range routeTables {
 		err := vpc.AWSClient.DeleteRouteTableChain(routeTable)
 		if err != nil {
