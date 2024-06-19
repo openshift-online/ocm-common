@@ -10,7 +10,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) ListSecurityGroups(vpcID string) ([]types.SecurityGroup, error) {
+func (client *awsClient) ListSecurityGroups(vpcID string) ([]types.SecurityGroup, error) {
 	vpcFilter := "vpc-id"
 	customizedSGs := []types.SecurityGroup{}
 	filter := []types.Filter{
@@ -37,7 +37,7 @@ func (client *AWSClient) ListSecurityGroups(vpcID string) ([]types.SecurityGroup
 	return customizedSGs, nil
 }
 
-func (client *AWSClient) ReleaseInboundOutboundRules(sgID string) error {
+func (client *awsClient) ReleaseInboundOutboundRules(sgID string) error {
 	filterKey := "group-id"
 	filter := []types.Filter{
 		types.Filter{
@@ -92,7 +92,7 @@ func (client *AWSClient) ReleaseInboundOutboundRules(sgID string) error {
 	return nil
 }
 
-func (client *AWSClient) DeleteSecurityGroup(groupID string) (*ec2.DeleteSecurityGroupOutput, error) {
+func (client *awsClient) DeleteSecurityGroup(groupID string) (*ec2.DeleteSecurityGroupOutput, error) {
 
 	err := client.ReleaseInboundOutboundRules(groupID)
 	if err != nil {
@@ -113,7 +113,7 @@ func (client *AWSClient) DeleteSecurityGroup(groupID string) (*ec2.DeleteSecurit
 	log.LogInfo("Delete security group %s success ", groupID)
 	return resp, err
 }
-func (client *AWSClient) AuthorizeSecurityGroupIngress(groupID string, cidr string, protocol string, fromPort int32, toPort int32) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
+func (client *awsClient) AuthorizeSecurityGroupIngress(groupID string, cidr string, protocol string, fromPort int32, toPort int32) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
 	input := &ec2.AuthorizeSecurityGroupIngressInput{
 		CidrIp:                     aws.String(cidr),
 		DryRun:                     nil,
@@ -137,7 +137,7 @@ func (client *AWSClient) AuthorizeSecurityGroupIngress(groupID string, cidr stri
 	return resp, err
 }
 
-func (client *AWSClient) CreateSecurityGroup(vpcID string, groupName string, sgDescription string) (*ec2.CreateSecurityGroupOutput, error) {
+func (client *awsClient) CreateSecurityGroup(vpcID string, groupName string, sgDescription string) (*ec2.CreateSecurityGroupOutput, error) {
 	input := &ec2.CreateSecurityGroupInput{
 		Description:       aws.String(sgDescription),
 		GroupName:         aws.String(groupName),
@@ -167,7 +167,7 @@ func (client *AWSClient) CreateSecurityGroup(vpcID string, groupName string, sgD
 	return resp, err
 }
 
-func (client *AWSClient) GetSecurityGroupWithID(sgID string) (*ec2.DescribeSecurityGroupsOutput, error) {
+func (client *awsClient) GetSecurityGroupWithID(sgID string) (*ec2.DescribeSecurityGroupsOutput, error) {
 
 	describeSGInput := &ec2.DescribeSecurityGroupsInput{
 		GroupIds: []string{sgID},

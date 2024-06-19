@@ -11,7 +11,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) ListVPCByName(vpcName string) ([]types.Vpc, error) {
+func (client *awsClient) ListVPCByName(vpcName string) ([]types.Vpc, error) {
 	vpcs := []types.Vpc{}
 	filterKey := "tag:Name"
 	filter := []types.Filter{
@@ -31,7 +31,7 @@ func (client *AWSClient) ListVPCByName(vpcName string) ([]types.Vpc, error) {
 	return vpcs, nil
 }
 
-func (client *AWSClient) CreateVpc(cidr string, name ...string) (*ec2.CreateVpcOutput, error) {
+func (client *awsClient) CreateVpc(cidr string, name ...string) (*ec2.CreateVpcOutput, error) {
 	vpcName := CON.VpcDefaultName
 	if len(name) == 1 {
 		vpcName = name[0]
@@ -71,7 +71,7 @@ func (client *AWSClient) CreateVpc(cidr string, name ...string) (*ec2.CreateVpcO
 
 // ModifyVpcDnsAttribute will modify the vpc attibutes
 // dnsAttribute should be the value of "DnsHostnames" and "DnsSupport"
-func (client *AWSClient) ModifyVpcDnsAttribute(vpcID string, dnsAttribute string, status bool) (*ec2.ModifyVpcAttributeOutput, error) {
+func (client *awsClient) ModifyVpcDnsAttribute(vpcID string, dnsAttribute string, status bool) (*ec2.ModifyVpcAttributeOutput, error) {
 	inputModifyVpc := &ec2.ModifyVpcAttributeInput{}
 
 	if dnsAttribute == CON.VpcDnsHostnamesAttribute {
@@ -95,7 +95,7 @@ func (client *AWSClient) ModifyVpcDnsAttribute(vpcID string, dnsAttribute string
 	return resp, err
 }
 
-func (client *AWSClient) DeleteVpc(vpcID string) (*ec2.DeleteVpcOutput, error) {
+func (client *awsClient) DeleteVpc(vpcID string) (*ec2.DeleteVpcOutput, error) {
 	input := &ec2.DeleteVpcInput{
 		VpcId:  aws.String(vpcID),
 		DryRun: nil,
@@ -110,7 +110,7 @@ func (client *AWSClient) DeleteVpc(vpcID string) (*ec2.DeleteVpcOutput, error) {
 	return resp, err
 
 }
-func (client *AWSClient) DescribeVPC(vpcID string) (types.Vpc, error) {
+func (client *awsClient) DescribeVPC(vpcID string) (types.Vpc, error) {
 	var vpc types.Vpc
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []string{vpcID},
@@ -124,7 +124,7 @@ func (client *AWSClient) DescribeVPC(vpcID string) (types.Vpc, error) {
 	return vpc, err
 }
 
-func (client *AWSClient) ListEndpointAssociation(vpcID string) ([]types.VpcEndpoint, error) {
+func (client *awsClient) ListEndpointAssociation(vpcID string) ([]types.VpcEndpoint, error) {
 	vpcFilterKey := "vpc-id"
 	filters := []types.Filter{
 		{
@@ -143,7 +143,7 @@ func (client *AWSClient) ListEndpointAssociation(vpcID string) ([]types.VpcEndpo
 	return resp.VpcEndpoints, err
 }
 
-func (client *AWSClient) DeleteVPCEndpoints(vpcID string) error {
+func (client *awsClient) DeleteVPCEndpoints(vpcID string) error {
 	vpcEndpoints, err := client.ListEndpointAssociation(vpcID)
 	if err != nil {
 		return err

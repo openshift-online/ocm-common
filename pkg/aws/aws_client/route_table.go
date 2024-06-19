@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) CreateRouteTable(vpcID string) (*ec2.CreateRouteTableOutput, error) {
+func (client *awsClient) CreateRouteTable(vpcID string) (*ec2.CreateRouteTableOutput, error) {
 	inputCreateRouteTable := &ec2.CreateRouteTableInput{
 		VpcId:             aws.String(vpcID),
 		DryRun:            nil,
@@ -28,7 +28,7 @@ func (client *AWSClient) CreateRouteTable(vpcID string) (*ec2.CreateRouteTableOu
 	return respCreateRT, err
 }
 
-func (client *AWSClient) AssociateRouteTable(routeTableID string, subnetID string, vpcID string) (*ec2.AssociateRouteTableOutput, error) {
+func (client *awsClient) AssociateRouteTable(routeTableID string, subnetID string, vpcID string) (*ec2.AssociateRouteTableOutput, error) {
 	inputAssociateRouteTable := &ec2.AssociateRouteTableInput{
 		RouteTableId: aws.String(routeTableID),
 		DryRun:       nil,
@@ -46,7 +46,7 @@ func (client *AWSClient) AssociateRouteTable(routeTableID string, subnetID strin
 }
 
 // ListRouteTable will list all of the route tables created based on the VPC
-func (client *AWSClient) ListCustomerRouteTables(vpcID string) ([]types.RouteTable, error) {
+func (client *awsClient) ListCustomerRouteTables(vpcID string) ([]types.RouteTable, error) {
 	vpcFilterName := "vpc-id"
 	Filters := []types.Filter{
 		types.Filter{
@@ -80,7 +80,7 @@ func (client *AWSClient) ListCustomerRouteTables(vpcID string) ([]types.RouteTab
 	return customRouteTables, nil
 }
 
-func (client *AWSClient) ListRTAssociations(routeTableID string) ([]string, error) {
+func (client *awsClient) ListRTAssociations(routeTableID string) ([]string, error) {
 	associations := []string{}
 	ListRouteTable := &ec2.DescribeRouteTablesInput{
 		RouteTableIds: []string{routeTableID},
@@ -97,7 +97,7 @@ func (client *AWSClient) ListRTAssociations(routeTableID string) ([]string, erro
 	return associations, err
 }
 
-func (client *AWSClient) DisassociateRouteTableAssociation(associationID string) (*ec2.DisassociateRouteTableOutput, error) {
+func (client *awsClient) DisassociateRouteTableAssociation(associationID string) (*ec2.DisassociateRouteTableOutput, error) {
 	input := &ec2.DisassociateRouteTableInput{
 		AssociationId: aws.String(associationID),
 		DryRun:        nil,
@@ -112,7 +112,7 @@ func (client *AWSClient) DisassociateRouteTableAssociation(associationID string)
 	return resp, err
 }
 
-func (client *AWSClient) DisassociateRouteTableAssociations(routeTableID string) error {
+func (client *awsClient) DisassociateRouteTableAssociations(routeTableID string) error {
 	associationIDs, err := client.ListRTAssociations(routeTableID)
 	if err != nil {
 		err = fmt.Errorf("List associations of route table %s failed: %s", routeTableID, err)
@@ -127,7 +127,7 @@ func (client *AWSClient) DisassociateRouteTableAssociations(routeTableID string)
 	return nil
 }
 
-func (client *AWSClient) CreateRoute(routeTableID string, targetID string) (*types.Route, error) {
+func (client *awsClient) CreateRoute(routeTableID string, targetID string) (*types.Route, error) {
 	prefix := strings.Split(targetID, "-")[0]
 	route := &types.Route{}
 	createRouteInput := &ec2.CreateRouteInput{
@@ -172,7 +172,7 @@ func (client *AWSClient) CreateRoute(routeTableID string, targetID string) (*typ
 	return route, err
 }
 
-func (client *AWSClient) DeleteRouteTable(routeTableID string) error {
+func (client *awsClient) DeleteRouteTable(routeTableID string) error {
 	input := &ec2.DeleteRouteTableInput{
 		RouteTableId: &routeTableID,
 	}
@@ -183,7 +183,7 @@ func (client *AWSClient) DeleteRouteTable(routeTableID string) error {
 	err = client.WaitForResourceDeleted(routeTableID, 5)
 	return err
 }
-func (client *AWSClient) DeleteRouteTableChain(routeTableID string) error {
+func (client *awsClient) DeleteRouteTableChain(routeTableID string) error {
 	err := client.DisassociateRouteTableAssociations(routeTableID)
 	if err != nil {
 		return err

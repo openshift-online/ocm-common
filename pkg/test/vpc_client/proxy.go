@@ -14,7 +14,7 @@ import (
 // LaunchProxyInstance will launch a proxy instance on the indicated zone.
 // If set imageID to empty, it will find the proxy image in the ProxyImageMap map
 // LaunchProxyInstance will return proxyInstance detail, privateIPAddress,CAcontent and error
-func (vpc *VPC) LaunchProxyInstance(zone string, keypairName string, privateKeyPath string) (inst types.Instance, privateIP string, proxyServerCA string, err error) {
+func (vpc *vpc) LaunchProxyInstance(zone string, keypairName string, privateKeyPath string) (inst types.Instance, privateIP string, proxyServerCA string, err error) {
 	filters := []map[string][]string{
 		{
 			"name": {

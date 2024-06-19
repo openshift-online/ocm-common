@@ -7,7 +7,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput, error) {
+func (client *awsClient) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput, error) {
 
 	input := &ec2.CreateKeyPairInput{
 		KeyName: &keyName,
@@ -23,7 +23,7 @@ func (client *AWSClient) CreateKeyPair(keyName string) (*ec2.CreateKeyPairOutput
 	return output, err
 }
 
-func (client *AWSClient) DeleteKeyPair(keyName string) (*ec2.DeleteKeyPairOutput, error) {
+func (client *awsClient) DeleteKeyPair(keyName string) (*ec2.DeleteKeyPairOutput, error) {
 	input := &ec2.DeleteKeyPairInput{
 		KeyName: &keyName,
 	}

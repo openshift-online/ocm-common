@@ -103,7 +103,7 @@ func (c *ClusterClient) Update() *ClusterUpdateRequest {
 }
 
 // AWS returns the target 'AWS' resource.
-func (c *ClusterClient) AWS() *AWSClient {
+func (c *ClusterClient) AWS() *awsClient {
 	return NewAWSClient(
 		c.transport,
 		path.Join(c.path, "aws"),

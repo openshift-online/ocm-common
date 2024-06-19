@@ -35,7 +35,7 @@ type AWSClient struct {
 // NewAWSClient creates a new client for the 'AWS'
 // resource using the given transport to send the requests and receive the
 // responses.
-func NewAWSClient(transport http.RoundTripper, path string) *AWSClient {
+func NewAWSClient(transport http.RoundTripper, path string) *awsClient {
 	return &AWSClient{
 		transport: transport,
 		path:      path,
@@ -43,7 +43,7 @@ func NewAWSClient(transport http.RoundTripper, path string) *AWSClient {
 }
 
 // PrivateLinkConfiguration returns the target 'private_link_configuration' resource.
-func (c *AWSClient) PrivateLinkConfiguration() *PrivateLinkConfigurationClient {
+func (c *awsClient) PrivateLinkConfiguration() *PrivateLinkConfigurationClient {
 	return NewPrivateLinkConfigurationClient(
 		c.transport,
 		path.Join(c.path, "private_link_configuration"),
@@ -51,7 +51,7 @@ func (c *AWSClient) PrivateLinkConfiguration() *PrivateLinkConfigurationClient {
 }
 
 // RolePolicyBindings returns the target 'role_policy_bindings' resource.
-func (c *AWSClient) RolePolicyBindings() *RolePolicyBindingsClient {
+func (c *awsClient) RolePolicyBindings() *RolePolicyBindingsClient {
 	return NewRolePolicyBindingsClient(
 		c.transport,
 		path.Join(c.path, "role_policy_bindings"),

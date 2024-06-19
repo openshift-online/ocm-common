@@ -2,7 +2,7 @@ package vpc_client
 
 // PrepareInternetGateway will return the existing internet gateway if there is one attached to the vpc
 // Otherwise, it will create a new one and attach to the VPC
-func (vpc *VPC) PrepareInternetGateway() (igwID string, err error) {
+func (vpc *vpc) PrepareInternetGateway() (igwID string, err error) {
 	igws, err := vpc.AWSClient.ListInternetGateWay(vpc.VpcID)
 	if err != nil {
 		return "", err
@@ -21,7 +21,7 @@ func (vpc *VPC) PrepareInternetGateway() (igwID string, err error) {
 	return *igw.InternetGateway.InternetGatewayId, nil
 }
 
-func (vpc *VPC) DeleteVPCInternetGateWays() error {
+func (vpc *vpc) DeleteVPCInternetGateWays() error {
 	igws, err := vpc.AWSClient.ListInternetGateWay(vpc.VpcID)
 	if err != nil {
 		return err

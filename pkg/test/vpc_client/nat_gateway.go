@@ -6,7 +6,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (vpc *VPC) DeleteVPCNatGateways(vpcID string) error {
+func (vpc *vpc) DeleteVPCNatGateways(vpcID string) error {
 
 	var delERR error
 	natGateways, err := vpc.AWSClient.ListNatGateWays(vpcID)

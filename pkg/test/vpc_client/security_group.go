@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (vpc *VPC) DeleteVPCSecurityGroups(customizedOnly bool) error {
+func (vpc *vpc) DeleteVPCSecurityGroups(customizedOnly bool) error {
 	needCleanGroups := []types.SecurityGroup{}
 	securityGroups, err := vpc.AWSClient.ListSecurityGroups(vpc.VpcID)
 	if customizedOnly {
@@ -35,7 +35,7 @@ func (vpc *VPC) DeleteVPCSecurityGroups(customizedOnly bool) error {
 }
 
 // CreateAndAuthorizeDefaultSecurityGroupForProxy can prepare a security group for the proxy launch
-func (vpc *VPC) CreateAndAuthorizeDefaultSecurityGroupForProxy() (string, error) {
+func (vpc *vpc) CreateAndAuthorizeDefaultSecurityGroupForProxy() (string, error) {
 	var groupID string
 	var err error
 	sgIDs, err := vpc.CreateAdditionalSecurityGroups(1, con.ProxySecurityGroupName, con.ProxySecurityGroupDescription)
@@ -51,7 +51,7 @@ func (vpc *VPC) CreateAndAuthorizeDefaultSecurityGroupForProxy() (string, error)
 // CreateAdditionalSecurityGroups  can prepare <count> additional security groups
 // description can be empty which will be set to default value
 // namePrefix is required, otherwise if there is same security group existing the creation will fail
-func (vpc *VPC) CreateAdditionalSecurityGroups(count int, namePrefix string, description string) ([]string, error) {
+func (vpc *vpc) CreateAdditionalSecurityGroups(count int, namePrefix string, description string) ([]string, error) {
 	preparedSGs := []string{}
 	createdsgNum := 0
 	if description == "" {

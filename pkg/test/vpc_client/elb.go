@@ -1,6 +1,6 @@
 package vpc_client
 
-func (vpc *VPC) DeleteVPCELBs() error {
+func (vpc *vpc) DeleteVPCELBs() error {
 	elbs, err := vpc.AWSClient.DescribeLoadBalancers(vpc.VpcID)
 	if err != nil {
 		return err

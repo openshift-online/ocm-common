@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (awsClient AWSClient) CreateHostedZone(hostedZoneName string, vpcID string, private bool) (*route53.CreateHostedZoneOutput, error) {
+func (awsClient *awsClient) CreateHostedZone(hostedZoneName string, vpcID string, private bool) (*route53.CreateHostedZoneOutput, error) {
 	input := &route53.CreateHostedZoneInput{
 		Name: &hostedZoneName,
 		HostedZoneConfig: &types.HostedZoneConfig{
@@ -30,7 +30,7 @@ func (awsClient AWSClient) CreateHostedZone(hostedZoneName string, vpcID string,
 	return resp, err
 }
 
-func (awsClient AWSClient) GetHostedZone(hostedZoneID string) (*route53.GetHostedZoneOutput, error) {
+func (awsClient *awsClient) GetHostedZone(hostedZoneID string) (*route53.GetHostedZoneOutput, error) {
 	input := &route53.GetHostedZoneInput{
 		Id: &hostedZoneID,
 	}
@@ -38,7 +38,7 @@ func (awsClient AWSClient) GetHostedZone(hostedZoneID string) (*route53.GetHoste
 	return awsClient.Route53Client.GetHostedZone(context.TODO(), input)
 }
 
-func (awsClient AWSClient) ListHostedZoneByDNSName(hostedZoneName string) (*route53.ListHostedZonesByNameOutput, error) {
+func (awsClient *awsClient) ListHostedZoneByDNSName(hostedZoneName string) (*route53.ListHostedZonesByNameOutput, error) {
 	var maxItems int32 = 1
 	input := &route53.ListHostedZonesByNameInput{
 		DNSName:  &hostedZoneName,

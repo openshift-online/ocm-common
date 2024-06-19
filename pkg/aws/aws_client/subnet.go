@@ -10,7 +10,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) CreateSubnet(vpcID string, zone string, subnetCidr string) (*types.Subnet, error) {
+func (client *awsClient) CreateSubnet(vpcID string, zone string, subnetCidr string) (*types.Subnet, error) {
 
 	if zone == "" {
 		return nil, fmt.Errorf("zone must be not empty for subnet creation")
@@ -40,7 +40,7 @@ func (client *AWSClient) CreateSubnet(vpcID string, zone string, subnetCidr stri
 	return respCreateSubnet.Subnet, err
 }
 
-func (client *AWSClient) ListSubnetByVpcID(vpcID string) ([]types.Subnet, error) {
+func (client *awsClient) ListSubnetByVpcID(vpcID string) ([]types.Subnet, error) {
 	subnetFilter := []types.Filter{
 		{
 			Name: aws.String("vpc-id"),
@@ -53,7 +53,7 @@ func (client *AWSClient) ListSubnetByVpcID(vpcID string) ([]types.Subnet, error)
 	return client.ListSubnetsByFilter(subnetFilter)
 }
 
-func (client *AWSClient) DeleteSubnet(subnetID string) (*ec2.DeleteSubnetOutput, error) {
+func (client *awsClient) DeleteSubnet(subnetID string) (*ec2.DeleteSubnetOutput, error) {
 	input := &ec2.DeleteSubnetInput{
 		SubnetId: aws.String(subnetID),
 		DryRun:   nil,
@@ -68,7 +68,7 @@ func (client *AWSClient) DeleteSubnet(subnetID string) (*ec2.DeleteSubnetOutput,
 	return resp, err
 }
 
-func (client *AWSClient) ListSubnetDetail(subnetIDs ...string) ([]types.Subnet, error) {
+func (client *awsClient) ListSubnetDetail(subnetIDs ...string) ([]types.Subnet, error) {
 	// subnetFilter := []types.Filter{types.Filter{Name: aws.String("vpc-id"), Values: []string{vpcID}}}
 	var subs = []types.Subnet{}
 	if len(subnetIDs) == 0 {
@@ -93,7 +93,7 @@ func (client *AWSClient) ListSubnetDetail(subnetIDs ...string) ([]types.Subnet, 
 }
 
 // List subnet by filters
-func (client *AWSClient) ListSubnetsByFilter(filter []types.Filter) ([]types.Subnet, error) {
+func (client *awsClient) ListSubnetsByFilter(filter []types.Filter) ([]types.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		DryRun:     nil,
 		Filters:    filter,

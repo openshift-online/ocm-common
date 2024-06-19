@@ -1,6 +1,6 @@
 package vpc_client
 
-func (vpc *VPC) DeleteVPCNetworkInterfaces() error {
+func (vpc *vpc) DeleteVPCNetworkInterfaces() error {
 	networkInterfaces, err := vpc.AWSClient.DescribeNetWorkInterface(vpc.VpcID)
 	if err != nil {
 		return err

@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 )
 
-func (client *AWSClient) DeleteOIDCProvider(providerArn string) error {
+func (client *awsClient) DeleteOIDCProvider(providerArn string) error {
 	input := &iam.DeleteOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: &providerArn,
 	}

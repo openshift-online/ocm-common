@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) AllocateEIPAddress() (*ec2.AllocateAddressOutput, error) {
+func (client *awsClient) AllocateEIPAddress() (*ec2.AllocateAddressOutput, error) {
 	inputs := &ec2.AllocateAddressInput{
 		Address:               nil,
 		CustomerOwnedIpv4Pool: nil,
@@ -28,7 +28,7 @@ func (client *AWSClient) AllocateEIPAddress() (*ec2.AllocateAddressOutput, error
 	return respEIP, err
 }
 
-func (client *AWSClient) DisassociateAddress(associateID string) (*ec2.DisassociateAddressOutput, error) {
+func (client *awsClient) DisassociateAddress(associateID string) (*ec2.DisassociateAddressOutput, error) {
 	inputDisassociate := &ec2.DisassociateAddressInput{
 		AssociationId: aws.String(associateID),
 		DryRun:        nil,
@@ -44,7 +44,7 @@ func (client *AWSClient) DisassociateAddress(associateID string) (*ec2.Disassoci
 	return respDisassociate, err
 }
 
-func (client *AWSClient) AllocateEIPAndAssociateInstance(instanceID string) (string, error) {
+func (client *awsClient) AllocateEIPAndAssociateInstance(instanceID string) (string, error) {
 	allocRes, err := client.AllocateEIPAddress()
 	if err != nil {
 		log.LogError("Failed allocated EIP: %s", err)
@@ -72,7 +72,7 @@ func (client *AWSClient) AllocateEIPAndAssociateInstance(instanceID string) (str
 	return *allocRes.PublicIp, nil
 }
 
-func (client *AWSClient) ReleaseAddress(allocationID string) (*ec2.ReleaseAddressOutput, error) {
+func (client *awsClient) ReleaseAddress(allocationID string) (*ec2.ReleaseAddressOutput, error) {
 	inputRelease := &ec2.ReleaseAddressInput{
 		AllocationId:       aws.String(allocationID),
 		DryRun:             nil,

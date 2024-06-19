@@ -1887,22 +1887,22 @@ type VPCAssociationAuthorizationNotFound struct {
 	noSmithyDocumentSerde
 }
 
-func (e *VPCAssociationAuthorizationNotFound) Error() string {
+func (e *vpcAssociationAuthorizationNotFound) Error() string {
 	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
 }
-func (e *VPCAssociationAuthorizationNotFound) ErrorMessage() string {
+func (e *vpcAssociationAuthorizationNotFound) ErrorMessage() string {
 	if e.Message == nil {
 		return ""
 	}
 	return *e.Message
 }
-func (e *VPCAssociationAuthorizationNotFound) ErrorCode() string {
+func (e *vpcAssociationAuthorizationNotFound) ErrorCode() string {
 	if e == nil || e.ErrorCodeOverride == nil {
 		return "VPCAssociationAuthorizationNotFound"
 	}
 	return *e.ErrorCodeOverride
 }
-func (e *VPCAssociationAuthorizationNotFound) ErrorFault() smithy.ErrorFault {
+func (e *vpcAssociationAuthorizationNotFound) ErrorFault() smithy.ErrorFault {
 	return smithy.FaultClient
 }
 
@@ -1915,19 +1915,19 @@ type VPCAssociationNotFound struct {
 	noSmithyDocumentSerde
 }
 
-func (e *VPCAssociationNotFound) Error() string {
+func (e *vpcAssociationNotFound) Error() string {
 	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
 }
-func (e *VPCAssociationNotFound) ErrorMessage() string {
+func (e *vpcAssociationNotFound) ErrorMessage() string {
 	if e.Message == nil {
 		return ""
 	}
 	return *e.Message
 }
-func (e *VPCAssociationNotFound) ErrorCode() string {
+func (e *vpcAssociationNotFound) ErrorCode() string {
 	if e == nil || e.ErrorCodeOverride == nil {
 		return "VPCAssociationNotFound"
 	}
 	return *e.ErrorCodeOverride
 }
-func (e *VPCAssociationNotFound) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
+func (e *vpcAssociationNotFound) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
