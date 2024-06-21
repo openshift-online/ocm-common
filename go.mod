@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/aws/aws-sdk-go-v2 v1.26.1
+	github.com/aws/aws-sdk-go-v2 v1.30.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.9
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.48.0
@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.24.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.27.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.30.0
+	github.com/aws/aws-sdk-go-v2/service/ram v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.5
 	github.com/go-jose/go-jose/v4 v4.0.2
@@ -34,8 +35,8 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.0 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.12 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.35.1
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 // indirect
