@@ -395,3 +395,45 @@ func (client *AWSClient) UntagRole(roleName string, tagKeys []string) error {
 	_, err := client.IamClient.UntagRole(context.TODO(), input)
 	return err
 }
+
+func (client *AWSClient) CreateRoleForSharedVPC(roleName, installerRoleArn string, ingressOperatorRoleArn string) (types.Role, error) {
+	statement := map[string]interface{}{
+		"Sid":    "Statement1",
+		"Effect": "Allow",
+		"Principal": map[string]interface{}{
+			"AWS": []string{installerRoleArn, ingressOperatorRoleArn},
+		},
+		"Action": "sts:AssumeRole",
+	}
+
+	assumeRolePolicyDocument, err := completeRolePolicyDocument(statement)
+	if err != nil {
+		fmt.Println("Failed to convert Role Policy Document into JSON: ", err)
+		return types.Role{}, err
+	}
+
+	return client.CreateRole(roleName, string(assumeRolePolicyDocument), "", make(map[string]string), "/")
+}
+
+func (client *AWSClient) CreatePolicyForSharedVPC(policyName string) (string, error) {
+	statement := map[string]interface{}{
+		"Sid":    "Statement1",
+		"Effect": "Allow",
+		"Action": []string{
+			"route53:GetChange",
+			"route53:GetHostedZone",
+			"route53:ChangeResourceRecordSets",
+			"route53:ListHostedZones",
+			"route53:ListHostedZonesByName",
+			"route53:ListResourceRecordSets",
+			"route53:ChangeTagsForResource",
+			"route53:GetAccountLimit",
+			"route53:ListTagsForResource",
+			"route53:UpdateHostedZoneComment",
+			"tag:GetResources",
+			"tag:UntagResources",
+		},
+		"Resource": "*",
+	}
+	return client.CreatePolicy(policyName, statement)
+}
