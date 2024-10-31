@@ -15,11 +15,11 @@ import (
 func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, error) {
 	var inst *types.Instance
 	if imageID == "" {
-		var ok bool
-		imageID, ok = CON.BastionImageMap[vpc.Region]
-		if !ok {
+		var err error
+		imageID, err = vpc.FindProxyLaunchImage()
+		if err != nil {
 			log.LogError("Cannot find bastion image of region %s in map bastionImageMap, please indicate it as parameter", vpc.Region)
-			return nil, fmt.Errorf("cannot find bastion image of region %s in map bastionImageMap, please indicate it as parameter", vpc.Region)
+			return nil, err
 		}
 	}
 	pubSubnet, err := vpc.PreparePublicSubnet(zone)
