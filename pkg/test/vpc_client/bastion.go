@@ -1,20 +1,22 @@
 package vpc_client
 
 import (
+	"encoding/base64"
+	"errors"
 	"fmt"
-	"time"
-
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"net"
 
 	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
 // LaunchBastion will launch a bastion instance on the indicated zone.
-// If set imageID to empty, it will find the bastion image in the bastionImageMap map
-func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, error) {
+// If set imageID to empty, it will find the bastion image using filter with specific name.
+func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string) (*types.Instance, error) {
 	var inst *types.Instance
 	if imageID == "" {
+
 		var err error
 		imageID, err = vpc.FindProxyLaunchImage()
 		if err != nil {
@@ -22,12 +24,16 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, err
 			return nil, err
 		}
 	}
+	if userData == "" {
+		log.LogError("Userdata can not be empty, pleas provide the correct userdata")
+		return nil, errors.New("userData should not be empty")
+	}
 	pubSubnet, err := vpc.PreparePublicSubnet(zone)
 	if err != nil {
-		log.LogInfo("Error preparing a subnet in current zone %s with image ID %s: %s", zone, imageID, err)
+		log.LogError("Error preparing a subnet in current zone %s with image ID %s: %s", zone, imageID, err)
 		return nil, err
 	}
-	SGID, err := vpc.CreateAndAuthorizeDefaultSecurityGroupForProxy()
+	SGID, err := vpc.CreateAndAuthorizeDefaultSecurityGroupForProxy(3128)
 	if err != nil {
 		log.LogError("Prepare SG failed for the bastion preparation %s", err)
 		return inst, err
@@ -38,7 +44,8 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, err
 		log.LogError("Create key pair failed %s", err)
 		return inst, err
 	}
-	instOut, err := vpc.AWSClient.LaunchInstance(pubSubnet.ID, imageID, 1, "t3.medium", *key.KeyName, []string{SGID}, true)
+	instOut, err := vpc.AWSClient.LaunchInstance(pubSubnet.ID, imageID, 1, "t3.medium", *key.KeyName,
+		[]string{SGID}, true, userData)
 
 	if err != nil {
 		log.LogError("Launch bastion instance failed %s", err)
@@ -63,11 +70,10 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string) (*types.Instance, err
 	log.LogInfo("Prepare EIP successfully for the bastion preparation. Launch with IP: %s", publicIP)
 	inst = &instOut.Instances[0]
 	inst.PublicIpAddress = &publicIP
-	time.Sleep(2 * time.Minute)
 	return inst, nil
 }
 
-func (vpc *VPC) PrepareBastion(zone string) (*types.Instance, error) {
+func (vpc *VPC) PrepareBastionProxy(zone string, cidrBlock string) (*types.Instance, error) {
 	filters := []map[string][]string{
 		{
 			"vpc-id": {
@@ -87,9 +93,43 @@ func (vpc *VPC) PrepareBastion(zone string) (*types.Instance, error) {
 	}
 	if len(insts) == 0 {
 		log.LogInfo("Didn't found an existing bastion, going to launch one")
-		return vpc.LaunchBastion("", zone)
+		if cidrBlock == "" {
+			cidrBlock = CON.RouteDestinationCidrBlock
+		}
+		_, _, err = net.ParseCIDR(cidrBlock)
+		if err != nil {
+			log.LogError("CIDR IP address format is invalid")
+			return nil, err
+		}
+
+		userData := fmt.Sprintf(`#!/bin/bash
+		yum update -y
+		yum install -y squid
+		cd /etc/squid/
+		sudo mv ./squid.conf ./squid.conf.bak
+		sudo touch squid.conf
+		echo http_port 3128 >> /etc/squid/squid.conf
+		echo acl allowed_ips src %s >> /etc/squid/squid.conf
+		echo http_access allow allowed_ips >> /etc/squid/squid.conf
+		echo http_access deny all >> /etc/squid/squid.conf
+		systemctl start squid
+		systemctl enable squid`, cidrBlock)
+
+		encodeUserData := base64.StdEncoding.EncodeToString([]byte(userData))
+		return vpc.LaunchBastion("", zone, encodeUserData)
 
 	}
 	log.LogInfo("Found existing bastion: %s", *insts[0].InstanceId)
 	return &insts[0], nil
+}
+
+func (vpc *VPC) DestroyBastionProxy(instance types.Instance) error {
+	var instanceIDs []string
+	instanceIDs = append(instanceIDs, *instance.InstanceId)
+	err := vpc.AWSClient.TerminateInstances(instanceIDs, true, 10)
+	if err != nil {
+		log.LogError("Terminate instance failed")
+		return err
+	}
+	return nil
 }

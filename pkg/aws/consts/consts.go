@@ -41,9 +41,11 @@ const (
 	TCPProtocol = "tcp"
 	UDPProtocol = "udp"
 
+	BastionSecurityGroupName                  = "bastion-sg"
 	ProxySecurityGroupName                    = "proxy-sg"
 	AdditionalSecurityGroupName               = "ocm-additional-sg"
 	ProxySecurityGroupDescription             = "security group for proxy"
+	BastionSecurityGroupDescription           = "security group for bastion"
 	DefaultAdditionalSecurityGroupDescription = "This security group is created for OCM testing"
 
 	QEFlagKey = "ocm_ci_flag"
