@@ -15,16 +15,32 @@ import (
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
-func (client *AWSClient) LaunchInstance(subnetID string, imageID string, count int, instanceType string, keyName string, securityGroupIds []string, wait bool) (*ec2.RunInstancesOutput, error) {
-	input := &ec2.RunInstancesInput{
-		ImageId:          aws.String(imageID),
-		MinCount:         aws.Int32(int32(count)),
-		MaxCount:         aws.Int32(int32(count)),
-		InstanceType:     types.InstanceType(instanceType),
-		KeyName:          aws.String(keyName),
-		SecurityGroupIds: securityGroupIds,
-		SubnetId:         &subnetID,
+func (client *AWSClient) LaunchInstance(subnetID string, imageID string, count int, instanceType string, keyName string,
+	securityGroupIds []string, wait bool, userDate ...string) (*ec2.RunInstancesOutput, error) {
+	var input *ec2.RunInstancesInput
+	if len(userDate) > 0 {
+		input = &ec2.RunInstancesInput{
+			ImageId:          aws.String(imageID),
+			MinCount:         aws.Int32(int32(count)),
+			MaxCount:         aws.Int32(int32(count)),
+			InstanceType:     types.InstanceType(instanceType),
+			KeyName:          aws.String(keyName),
+			SecurityGroupIds: securityGroupIds,
+			SubnetId:         &subnetID,
+			UserData:         &userDate[0],
+		}
+	} else {
+		input = &ec2.RunInstancesInput{
+			ImageId:          aws.String(imageID),
+			MinCount:         aws.Int32(int32(count)),
+			MaxCount:         aws.Int32(int32(count)),
+			InstanceType:     types.InstanceType(instanceType),
+			KeyName:          aws.String(keyName),
+			SecurityGroupIds: securityGroupIds,
+			SubnetId:         &subnetID,
+		}
 	}
+
 	output, err := client.Ec2Client.RunInstances(context.TODO(), input)
 	if wait && err == nil {
 		instanceIDs := []string{}
