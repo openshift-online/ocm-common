@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/openshift-online/ocm-common/pkg/file"
 	"net"
+	"time"
 
 	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
 	"github.com/openshift-online/ocm-common/pkg/log"
@@ -13,7 +15,8 @@ import (
 
 // LaunchBastion will launch a bastion instance on the indicated zone.
 // If set imageID to empty, it will find the bastion image using filter with specific name.
-func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string) (*types.Instance, error) {
+func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string, keypairName string,
+	privateKeyPath string) (*types.Instance, error) {
 	var inst *types.Instance
 	if imageID == "" {
 
@@ -38,10 +41,25 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string) (*ty
 		log.LogError("Prepare SG failed for the bastion preparation %s", err)
 		return inst, err
 	}
-
-	key, err := vpc.CreateKeyPair(fmt.Sprintf("%s-bastion", CON.InstanceKeyNamePrefix))
+	keyName := fmt.Sprintf("%s-%s", CON.InstanceKeyNamePrefix, keypairName)
+	key, err := vpc.CreateKeyPair(keyName)
 	if err != nil {
 		log.LogError("Create key pair failed %s", err)
+		return inst, err
+	}
+	tags := map[string]string{
+		"Name": CON.BastionName,
+	}
+	_, err = vpc.AWSClient.TagResource(*key.KeyPairId, tags)
+	if err != nil {
+		log.LogError("Add tag for key pair %s failed %s", *key.KeyPairId, err)
+		return inst, err
+	}
+
+	privateKeyName := fmt.Sprintf("%s-%s", keypairName, "keyPair.pem")
+	sshKeyPath, err := file.WriteToFile(*key.KeyMaterial, privateKeyName, privateKeyPath)
+	if err != nil {
+		log.LogError("Write private key to %s failed %s", sshKeyPath, err)
 		return inst, err
 	}
 	instOut, err := vpc.AWSClient.LaunchInstance(pubSubnet.ID, imageID, 1, "t3.medium", *key.KeyName,
@@ -53,7 +71,7 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string) (*ty
 	} else {
 		log.LogInfo("Launch bastion instance %s succeed", *instOut.Instances[0].InstanceId)
 	}
-	tags := map[string]string{
+	tags = map[string]string{
 		"Name": CON.BastionName,
 	}
 	instID := *instOut.Instances[0].InstanceId
@@ -68,12 +86,16 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string) (*ty
 		return inst, err
 	}
 	log.LogInfo("Prepare EIP successfully for the bastion preparation. Launch with IP: %s", publicIP)
+
+	time.Sleep(2 * time.Minute)
+
 	inst = &instOut.Instances[0]
 	inst.PublicIpAddress = &publicIP
 	return inst, nil
 }
 
-func (vpc *VPC) PrepareBastionProxy(zone string, cidrBlock string) (*types.Instance, error) {
+func (vpc *VPC) PrepareBastionProxy(zone string, cidrBlock string, keypairName string,
+	privateKeyPath string) (*types.Instance, error) {
 	filters := []map[string][]string{
 		{
 			"vpc-id": {
@@ -116,7 +138,7 @@ func (vpc *VPC) PrepareBastionProxy(zone string, cidrBlock string) (*types.Insta
 		systemctl enable squid`, cidrBlock)
 
 		encodeUserData := base64.StdEncoding.EncodeToString([]byte(userData))
-		return vpc.LaunchBastion("", zone, encodeUserData)
+		return vpc.LaunchBastion("", zone, encodeUserData, keypairName, privateKeyPath)
 
 	}
 	log.LogInfo("Found existing bastion: %s", *insts[0].InstanceId)
