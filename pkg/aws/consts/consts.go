@@ -55,6 +55,13 @@ const (
 	InstanceKeyNamePrefix = "ocm-ci"
 	AWSInstanceUser       = "ec2-user"
 	BastionName           = "ocm-bastion"
+
+	SSHPort = "22"
+
+	// Squid related
+	SquidConfigFilePath   = "/etc/squid/squid.conf"
+	SquidPasswordFilePath = "/etc/squid/passwords"
+	SquidProxyPort        = "3128"
 )
 
 var AmazonName = "amazon"

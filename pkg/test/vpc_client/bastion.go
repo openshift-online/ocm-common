@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/openshift-online/ocm-common/pkg/file"
-	"net"
+	"golang.org/x/crypto/bcrypt"
+	"net/url"
 	"time"
 
 	CON "github.com/openshift-online/ocm-common/pkg/aws/consts"
+	awsUtils "github.com/openshift-online/ocm-common/pkg/aws/utils"
 	"github.com/openshift-online/ocm-common/pkg/log"
+	"github.com/openshift-online/ocm-common/pkg/utils"
 )
 
 // LaunchBastion will launch a bastion instance on the indicated zone.
@@ -94,55 +97,37 @@ func (vpc *VPC) LaunchBastion(imageID string, zone string, userData string, keyp
 	return inst, nil
 }
 
-func (vpc *VPC) PrepareBastionProxy(zone string, cidrBlock string, keypairName string,
-	privateKeyPath string) (*types.Instance, error) {
-	filters := []map[string][]string{
-		{
-			"vpc-id": {
-				vpc.VpcID,
-			},
-		},
-		{
-			"tag:Name": {
-				CON.BastionName,
-			},
-		},
-	}
-
-	insts, err := vpc.AWSClient.ListInstances([]string{}, filters...)
+// PrepareBastionProxy will launch a bastion instance with squid proxy on the indicated zone and return the proxy url.
+func (vpc *VPC) PrepareBastionProxy(zone string, keypairName string, privateKeyPath string) (proxyUrl string, err error) {
+	encodeUserData := generateShellCommand()
+	instance, err := vpc.LaunchBastion("", zone, encodeUserData, keypairName, privateKeyPath)
 	if err != nil {
-		return nil, err
+		log.LogError("Launch bastion failed")
+		return "", err
 	}
-	if len(insts) == 0 {
-		log.LogInfo("Didn't found an existing bastion, going to launch one")
-		if cidrBlock == "" {
-			cidrBlock = CON.RouteDestinationCidrBlock
-		}
-		_, _, err = net.ParseCIDR(cidrBlock)
+
+	privateKeyName := awsUtils.GetPrivateKeyName(privateKeyPath, keypairName)
+	hostName := fmt.Sprintf("%s:%s", *instance.PublicIpAddress, CON.SSHPort)
+	SSHExecuteCMDs, username, password, err := generateWriteSquidPasswordFileCommand()
+	if err != nil {
+		return "", err
+	}
+	for _, cmd := range SSHExecuteCMDs {
+		_, err = Exec_CMD(CON.AWSInstanceUser, privateKeyName, hostName, cmd)
 		if err != nil {
-			log.LogError("CIDR IP address format is invalid")
-			return nil, err
+			log.LogError("SSH execute command failed")
+			return "", err
 		}
-
-		userData := fmt.Sprintf(`#!/bin/bash
-		yum update -y
-		yum install -y squid
-		cd /etc/squid/
-		sudo mv ./squid.conf ./squid.conf.bak
-		sudo touch squid.conf
-		echo http_port 3128 >> /etc/squid/squid.conf
-		echo acl allowed_ips src %s >> /etc/squid/squid.conf
-		echo http_access allow allowed_ips >> /etc/squid/squid.conf
-		echo http_access deny all >> /etc/squid/squid.conf
-		systemctl start squid
-		systemctl enable squid`, cidrBlock)
-
-		encodeUserData := base64.StdEncoding.EncodeToString([]byte(userData))
-		return vpc.LaunchBastion("", zone, encodeUserData, keypairName, privateKeyPath)
-
 	}
-	log.LogInfo("Found existing bastion: %s", *insts[0].InstanceId)
-	return &insts[0], nil
+
+	// construct proxy url
+	proxy := &url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("%s:%s", *instance.PublicIpAddress, CON.SquidProxyPort),
+		User:   url.UserPassword(username, password),
+	}
+	proxyUrl = proxy.String()
+	return proxyUrl, nil
 }
 
 func (vpc *VPC) DestroyBastionProxy(instance types.Instance) error {
@@ -154,4 +139,63 @@ func (vpc *VPC) DestroyBastionProxy(instance types.Instance) error {
 		return err
 	}
 	return nil
+}
+
+func generateBcryptPassword(plainPassword string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.LogError("Generate hashed password failed")
+		return "", nil
+	}
+	log.LogInfo("Generate hashed password finished.")
+	return string(hashedPassword), nil
+}
+
+func generateShellCommand() string {
+	userData := fmt.Sprintf(`#!/bin/bash
+		yum update -y
+		sudo dnf install squid -y
+		cd /etc/squid/
+		sudo mv ./squid.conf ./squid.conf.bak
+		sudo touch squid.conf
+		echo http_port %s >> %s
+		echo auth_param basic program /usr/lib64/squid/basic_ncsa_auth %s >> %s
+		echo auth_param basic realm Squid Proxy Server >> %s
+		echo acl authenticated proxy_auth REQUIRED >> %s
+		echo http_access allow authenticated >> %s
+		echo http_access deny all >> %s
+		systemctl start squid
+		systemctl enable squid`, CON.SquidProxyPort, CON.SquidConfigFilePath, CON.SquidPasswordFilePath,
+		CON.SquidConfigFilePath, CON.SquidConfigFilePath, CON.SquidConfigFilePath, CON.SquidConfigFilePath,
+		CON.SquidConfigFilePath)
+
+	encodeUserData := base64.StdEncoding.EncodeToString([]byte(userData))
+	log.LogInfo("Generate user data to creating squid proxy successfully.")
+
+	return encodeUserData
+}
+
+func generateWriteSquidPasswordFileCommand() (SSHExecuteCMDs []string, username string,
+	password string, err error) {
+	username = utils.RandomLabel(5)
+	password = utils.GeneratePassword(10)
+
+	hashedPassword, err := generateBcryptPassword(password)
+	if err != nil {
+		log.LogError("Generate bcrypt password failed.")
+		return []string{}, "", "", err
+	}
+
+	line := fmt.Sprintf("%s:%s\n", username, hashedPassword)
+	remoteFilePath := CON.SquidPasswordFilePath
+
+	createFileCMD := fmt.Sprintf("sudo touch %s", remoteFilePath)
+	copyPasswordCMD := fmt.Sprintf("echo '%s' | sudo tee %s > /dev/null", line, remoteFilePath)
+	SSHExecuteCMDs = []string{
+		createFileCMD,
+		copyPasswordCMD,
+	}
+
+	log.LogInfo("Generate write squid password file command finished.")
+	return SSHExecuteCMDs, username, password, nil
 }
