@@ -523,12 +523,12 @@ func (client *AWSClient) UpdateAssumeRolePolicy(roleName string, assumeRolePolic
 }
 
 func (client *AWSClient) UpdateAssumeRolePolicyForSharedVPCRole(roleName string, installerRoleArn string,
-	ingressOperatorRoleArn string) error {
+	ingressOperatorRoleArn string, controlPlaneOperatorRoleArn string) error {
 	statement := map[string]interface{}{
 		"Sid":    "Statement1",
 		"Effect": "Allow",
 		"Principal": map[string]interface{}{
-			"AWS": []string{installerRoleArn, ingressOperatorRoleArn},
+			"AWS": []string{installerRoleArn, ingressOperatorRoleArn, controlPlaneOperatorRoleArn},
 		},
 		"Action": "sts:AssumeRole",
 	}
