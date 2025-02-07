@@ -1,6 +1,7 @@
 package oidcconfigs
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -219,12 +220,17 @@ func keyIDFromPublicKey(publicKey interface{}) (string, error) {
 	return keyID, nil
 }
 
-func FetchThumbprint(oidcEndpointURL string) (string, error) {
+func FetchThumbprint(ctx context.Context, oidcEndpointURL string) (string, error) {
 	connect, err := url.ParseRequestURI(oidcEndpointURL)
 	if err != nil {
 		return "", err
 	}
-	response, err := http.Get(fmt.Sprintf("https://%s:443", connect.Host))
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		fmt.Sprintf("https://%s:443", connect.Host), nil)
+	if err != nil {
+		return "", err
+	}
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err
 	}
