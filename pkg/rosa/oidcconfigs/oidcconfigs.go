@@ -234,6 +234,7 @@ func FetchThumbprint(ctx context.Context, oidcEndpointURL string) (string, error
 	if err != nil {
 		return "", err
 	}
+	defer response.Body.Close()
 	certChain := response.TLS.PeerCertificates
 	// https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html
 	// If you see more than one certificate, find the last certificate displayed (at the end of the command output).
