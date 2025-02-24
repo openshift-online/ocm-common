@@ -463,6 +463,33 @@ func (client *AWSClient) CreatePolicyForSharedVPC(policyName string) (string, er
 	return client.CreatePolicy(policyName, statement)
 }
 
+func (client *AWSClient) CreatePolicyForSharedVPCEndpoint(policyName string) (string, error) {
+	statement := map[string]interface{}{
+		"Sid":    "Statement1",
+		"Effect": "Allow",
+		"Action": []string{
+			"ec2:CreateVpcEndpoint",
+			"ec2:DescribeVpcEndpoints",
+			"ec2:ModifyVpcEndpoint",
+			"ec2:DeleteVpcEndpoints",
+			"ec2:CreateTags",
+			"ec2:CreateSecurityGroup",
+			"ec2:AuthorizeSecurityGroupIngress",
+			"ec2:AuthorizeSecurityGroupEgress",
+			"ec2:DeleteSecurityGroup",
+			"ec2:RevokeSecurityGroupIngress",
+			"ec2:RevokeSecurityGroupEgress",
+			"ec2:DescribeSecurityGroups",
+			"ec2:DescribeVpcs",
+			"route53:ListHostedZones",
+			"route53:ChangeResourceRecordSets",
+			"route53:ListResourceRecordSets",
+		},
+		"Resource": "*",
+	}
+	return client.CreatePolicy(policyName, statement)
+}
+
 func (client *AWSClient) CreateRoleForAdditionalPrincipals(roleName string, installerRoleArn string) (types.Role, error) {
 	statement := map[string]interface{}{
 		"Sid":    "Statement1",
@@ -496,12 +523,12 @@ func (client *AWSClient) UpdateAssumeRolePolicy(roleName string, assumeRolePolic
 }
 
 func (client *AWSClient) UpdateAssumeRolePolicyForSharedVPCRole(roleName string, installerRoleArn string,
-	ingressOperatorRoleArn string) error {
+	ingressOperatorRoleArn string, controlPlaneOperatorRoleArn string) error {
 	statement := map[string]interface{}{
 		"Sid":    "Statement1",
 		"Effect": "Allow",
 		"Principal": map[string]interface{}{
-			"AWS": []string{installerRoleArn, ingressOperatorRoleArn},
+			"AWS": []string{installerRoleArn, ingressOperatorRoleArn, controlPlaneOperatorRoleArn},
 		},
 		"Action": "sts:AssumeRole",
 	}
