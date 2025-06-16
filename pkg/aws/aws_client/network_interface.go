@@ -52,7 +52,7 @@ func (client *AWSClient) DeleteNetworkInterface(networkinterface types.NetworkIn
 	association := networkinterface.Association
 	if association != nil {
 		if association.AllocationId != nil {
-			_, err := client.ReleaseAddress(*association.AllocationId)
+			err := client.ReleaseAddressWithAllocationID(*association.AllocationId)
 			if err != nil {
 				log.LogError("Release address failed for %s: %s", *networkinterface.NetworkInterfaceId, err)
 				return err
