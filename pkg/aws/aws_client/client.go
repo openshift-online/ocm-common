@@ -116,6 +116,15 @@ func (client *AWSClient) GetAWSAccountID() string {
 	return *out.Account
 }
 
+func (client *AWSClient) GetAWSArn() string {
+	input := &sts.GetCallerIdentityInput{}
+	out, err := client.StsClient.GetCallerIdentity(client.ClientContext, input)
+	if err != nil {
+		return ""
+	}
+	return *out.Arn
+}
+
 func (client *AWSClient) GetAWSPartition() string {
 	defaultPartition := "aws"
 	input := &sts.GetCallerIdentityInput{}
