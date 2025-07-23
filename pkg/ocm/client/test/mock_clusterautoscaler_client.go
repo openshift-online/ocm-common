@@ -5,6 +5,7 @@
 //
 //	mockgen -source=clusterautoscaler_client.go -package=test -destination=test/mock_clusterautoscaler_client.go
 //
+
 // Package test is a generated GoMock package.
 package test
 
@@ -20,6 +21,7 @@ import (
 type MockClusterAutoscalerClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClusterAutoscalerClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClusterAutoscalerClientMockRecorder is the mock recorder for MockClusterAutoscalerClient.
