@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+
 	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 )
 
-//go:generate mockgen -source=clusterautoscaler_client.go -package=testing -destination=testing/mock_clusterautoscaler_client.go
+//go:generate mockgen -source=clusterautoscaler_client.go -package=test -destination=test/mock_clusterautoscaler_client.go
 type ClusterAutoscalerClient interface {
 	SingleClusterSubResource[v1.ClusterAutoscaler]
 }

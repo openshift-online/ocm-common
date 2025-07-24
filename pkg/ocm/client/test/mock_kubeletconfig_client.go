@@ -5,6 +5,7 @@
 //
 //	mockgen -source=kubeletconfig_client.go -package=test -destination=test/mock_kubeletconfig_client.go
 //
+
 // Package test is a generated GoMock package.
 package test
 
@@ -20,6 +21,7 @@ import (
 type MockKubeletConfigClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockKubeletConfigClientMockRecorder
+	isgomock struct{}
 }
 
 // MockKubeletConfigClientMockRecorder is the mock recorder for MockKubeletConfigClient.

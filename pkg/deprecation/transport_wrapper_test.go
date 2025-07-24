@@ -7,24 +7,17 @@ import (
 	"os"
 	"strings"
 
+	"go.uber.org/mock/gomock"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/openshift-online/ocm-common/pkg/deprecation"
+	"github.com/openshift-online/ocm-common/pkg/deprecation/test"
 	"github.com/openshift-online/ocm-common/pkg/ocm/consts"
 )
 
-// mockRoundTripper implements http.RoundTripper for testing
-type mockRoundTripper struct {
-	response *http.Response
-	err      error
-}
-
-func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m.response, m.err
-}
-
-// captureStderr captures stderr output for testing
+// captureStderr captures stderr output for test
 func captureStderr(fn func()) string {
 	old := os.Stderr
 	r, w, _ := os.Pipe()
@@ -44,14 +37,20 @@ func captureStderr(fn func()) string {
 var _ = Describe("TransportWrapper", func() {
 	var (
 		wrapper       http.RoundTripper
-		mockTransport *mockRoundTripper
+		mockCtrl      *gomock.Controller
+		mockTransport *test.MockRoundTripper
 		req           *http.Request
 	)
 
 	BeforeEach(func() {
-		mockTransport = &mockRoundTripper{}
+		mockCtrl = gomock.NewController(GinkgoT())
+		mockTransport = test.NewMockRoundTripper(mockCtrl)
 		wrapper = deprecation.NewTransportWrapper()(mockTransport)
 		req, _ = http.NewRequest("GET", "https://api.example.com/test", nil)
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
 	})
 
 	Context("when response has deprecation headers", func() {
@@ -60,11 +59,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers.Set(consts.DeprecationHeader, "2050-12-31T23:59:59Z")
 			headers.Set(consts.OcmDeprecationMessage, "This endpoint is deprecated")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -81,11 +80,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers := http.Header{}
 			headers.Set(consts.DeprecationHeader, "2050-12-31T23:59:59Z")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -102,11 +101,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers := http.Header{}
 			headers.Set(consts.OcmDeprecationMessage, "Use v2 API instead")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -123,11 +122,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers := http.Header{}
 			headers.Set(consts.DeprecationHeader, "Mon, 31 Dec 2050 23:59:59 GMT")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -141,11 +140,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers := http.Header{}
 			headers.Set(consts.DeprecationHeader, "2040-12-31T23:59:59Z")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -161,11 +160,11 @@ var _ = Describe("TransportWrapper", func() {
 		It("should not print any warning", func() {
 			headers := http.Header{}
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -179,7 +178,7 @@ var _ = Describe("TransportWrapper", func() {
 
 	Context("when underlying transport returns error", func() {
 		It("should return the error without processing", func() {
-			mockTransport.err = http.ErrUseLastResponse
+			mockTransport.EXPECT().RoundTrip(req).Return(nil, http.ErrUseLastResponse)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -193,7 +192,7 @@ var _ = Describe("TransportWrapper", func() {
 
 	Context("when response is nil", func() {
 		It("should not panic and not print warnings", func() {
-			mockTransport.response = nil
+			mockTransport.EXPECT().RoundTrip(req).Return(nil, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -207,11 +206,11 @@ var _ = Describe("TransportWrapper", func() {
 
 	Context("when response headers are nil", func() {
 		It("should not panic and not print warnings", func() {
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     nil,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -228,11 +227,11 @@ var _ = Describe("TransportWrapper", func() {
 			headers := http.Header{}
 			headers.Set(consts.DeprecationHeader, "invalid-date")
 
-			mockTransport.response = &http.Response{
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 				StatusCode: http.StatusOK,
 				Header:     headers,
 				Body:       io.NopCloser(strings.NewReader("{}")),
-			}
+			}, nil)
 
 			output := captureStderr(func() {
 				resp, err := wrapper.RoundTrip(req)
@@ -260,11 +259,11 @@ var _ = Describe("TransportWrapper", func() {
 			}
 
 			for _, statusCode := range statusCodes {
-				mockTransport.response = &http.Response{
+				mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
 					StatusCode: statusCode,
 					Header:     headers,
 					Body:       io.NopCloser(strings.NewReader("{}")),
-				}
+				}, nil)
 
 				output := captureStderr(func() {
 					resp, err := wrapper.RoundTrip(req)

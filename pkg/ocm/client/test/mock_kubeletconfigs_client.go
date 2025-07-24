@@ -22,6 +22,7 @@ import (
 type MockKubeletConfigsClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockKubeletConfigsClientMockRecorder
+	isgomock struct{}
 }
 
 // MockKubeletConfigsClientMockRecorder is the mock recorder for MockKubeletConfigsClient.
