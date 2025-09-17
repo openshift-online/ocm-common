@@ -51,12 +51,24 @@ func CreateAWSClient(profileName string, region string, awsSharedCredentialFile 
 	var err error
 
 	if len(awsSharedCredentialFile) > 0 {
-		file := awsSharedCredentialFile[0]
-		log.LogInfo("Got aws shared credential file path: %s ", file)
-		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region),
-			config.WithSharedCredentialsFiles([]string{file}),
-		)
+		if envSharedVPCCredential() {
+			log.LogInfo("Got AWS_SHARED_VPC_ACCESS_KEY_ID env settings, going to build the config with the env")
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithCredentialsProvider(
+					credentials.NewStaticCredentialsProvider(
+						os.Getenv("AWS_SHARED_VPC_ACCESS_KEY_ID"),
+						os.Getenv("AWS_SHARED_VPC_SECRET_ACCESS_KEY"),
+						"")),
+			)
+		} else {
+			file := awsSharedCredentialFile[0]
+			log.LogInfo("Got aws shared credential file path: %s ", file)
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithSharedCredentialsFiles([]string{file}),
+			)
+		}
 	} else {
 		if envCredential() {
 			log.LogInfo("Got AWS_ACCESS_KEY_ID env settings, going to build the config with the env")

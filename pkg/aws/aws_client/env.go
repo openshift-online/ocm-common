@@ -11,3 +11,9 @@ func envCredential() bool {
 func envAwsProfile() bool {
 	return os.Getenv("AWS_SHARED_CREDENTIALS_FILE") != ""
 }
+func envSharedVPCCredential() bool {
+	if os.Getenv("AWS_SHARED_VPC_ACCESS_KEY_ID") != "" && os.Getenv("AWS_SHARED_VPC_SECRET_ACCESS_KEY") != "" {
+		return true
+	}
+	return false
+}
