@@ -4,13 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"time"
+
+	"github.com/openshift-online/ocm-common/pkg/ocm/consts"
 )
 
 const (
 	ContextFieldDeprecationsKey = "fieldDeprecations"
 )
 
+// FieldDeprecations is stored in the request context and contains field deprecation information
 type FieldDeprecations struct {
 	messages map[string]map[string]string
 }
@@ -54,4 +58,28 @@ func GetFieldDeprecations(ctx context.Context) FieldDeprecations {
 		return NewFieldDeprecations()
 	}
 	return fieldDeprecations
+}
+
+// FieldDeprecationResponseWriter is a wrapping for the response writer that sets field deprecation headers
+type FieldDeprecationResponseWriter struct {
+	http.ResponseWriter
+	Request *http.Request
+}
+
+func (w *FieldDeprecationResponseWriter) WriteHeader(statusCode int) {
+	w.setFieldDeprecationHeaders()
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *FieldDeprecationResponseWriter) Write(data []byte) (int, error) {
+	w.setFieldDeprecationHeaders()
+	return w.ResponseWriter.Write(data)
+}
+
+func (w *FieldDeprecationResponseWriter) setFieldDeprecationHeaders() {
+	deprecatedFields := GetFieldDeprecations(w.Request.Context())
+	if !deprecatedFields.IsEmpty() {
+		deprecatedFieldsJSON, _ := deprecatedFields.ToJSON()
+		w.ResponseWriter.Header().Set(consts.OcmFieldDeprecation, string(deprecatedFieldsJSON))
+	}
 }
