@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"go.uber.org/mock/gomock"
 
@@ -153,6 +154,39 @@ var _ = Describe("TransportWrapper", func() {
 			})
 
 			Expect(output).To(ContainSubstring("This endpoint will be removed on: 2040-12-31T23:59:59Z"))
+		})
+		It("should print warning with only field deprecation header", func() {
+			headers := http.Header{}
+
+			sunsetDate := time.Now().Add(time.Hour * 24 * 365)
+			fieldDeprecations := deprecation.NewFieldDeprecations()
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
+			Expect(err).NotTo(HaveOccurred())
+			fieldDeprecationsJSON, _ := fieldDeprecations.ToJSON()
+			headers.Set(consts.OcmFieldDeprecation, string(fieldDeprecationsJSON))
+
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
+				StatusCode: http.StatusOK,
+				Header:     headers,
+				Body:       io.NopCloser(strings.NewReader("{}")),
+			}, nil)
+
+			output := captureStderr(func() {
+				resp, err := wrapper.RoundTrip(req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			})
+
+			Expect(output).To(ContainSubstring("WARNING: You are using OCM API fields that have been deprecated"))
+			Expect(output).To(ContainSubstring("this field is deprecated"))
+			Expect(output).NotTo(ContainSubstring("Deprecation:"))
+		})
+		It("should error if sunset date is in the past", func() {
+			sunsetDate := time.Now().Add(time.Hour * 24 * -365)
+			fieldDeprecations := deprecation.NewFieldDeprecations()
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("this field is deprecated"))
 		})
 	})
 
