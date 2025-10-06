@@ -158,7 +158,7 @@ var _ = Describe("TransportWrapper", func() {
 		It("should print warning with only field deprecation header", func() {
 			headers := http.Header{}
 
-			sunsetDate := time.Now().Add(time.Hour * 24 * 365)
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * 365)
 			fieldDeprecations := deprecation.NewFieldDeprecations()
 			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
 			Expect(err).NotTo(HaveOccurred())
@@ -182,7 +182,7 @@ var _ = Describe("TransportWrapper", func() {
 			Expect(output).NotTo(ContainSubstring("Deprecation:"))
 		})
 		It("should error if sunset date is in the past", func() {
-			sunsetDate := time.Now().Add(time.Hour * 24 * -365)
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * -365)
 			fieldDeprecations := deprecation.NewFieldDeprecations()
 			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
 			Expect(err).To(HaveOccurred())
