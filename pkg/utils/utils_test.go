@@ -40,4 +40,17 @@ var _ = Describe("Utils", func() {
 			Expect(smallerThanByteInLength).To(Equal(truncated + "a"))
 		})
 	})
+	var _ = Describe("Validates GetBoolNotNil function", func() {
+		boolPtr := func(b bool) *bool { return &b }
+
+		DescribeTable("returns correct boolean value",
+			func(input *bool, expected bool) {
+				result := GetBoolNotNil(input)
+				Expect(result).To(Equal(expected))
+			},
+			Entry("nil pointer returns false", nil, false),
+			Entry("pointer to true returns true", boolPtr(true), true),
+			Entry("pointer to false returns false", boolPtr(false), false),
+		)
+	})
 })
