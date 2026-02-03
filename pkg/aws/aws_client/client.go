@@ -77,9 +77,6 @@ func CreateAWSClient(profileName string, region string, awsSharedCredentialFile 
 							"")),
 				)
 			} else {
-				//  - No awsSharedCredentialFile parameter is passed to the function, AND
-				// - AWS_ACCESS_KEY_ID environment variable is not set (so envCredential() returns false), AND
-				// - AWS_SHARED_CREDENTIALS_FILE environment variable is not set (so envAwsProfile() returns false)
 				log.LogInfo("AWS_SHARED_CREDENTIALS_FILE not supplied")
 				cfg, err = config.LoadDefaultConfig(context.TODO(),
 					config.WithRegion(region),
