@@ -158,9 +158,9 @@ var _ = Describe("TransportWrapper", func() {
 		It("should print warning with only field deprecation header", func() {
 			headers := http.Header{}
 
-			sunsetDate := time.Now().Add(time.Hour * 24 * 365)
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * 365)
 			fieldDeprecations := deprecation.NewFieldDeprecations()
-			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate, true)
 			Expect(err).NotTo(HaveOccurred())
 			fieldDeprecationsJSON, _ := fieldDeprecations.ToJSON()
 			headers.Set(consts.OcmFieldDeprecation, string(fieldDeprecationsJSON))
@@ -181,12 +181,44 @@ var _ = Describe("TransportWrapper", func() {
 			Expect(output).To(ContainSubstring("this field is deprecated"))
 			Expect(output).NotTo(ContainSubstring("Deprecation:"))
 		})
-		It("should error if sunset date is in the past", func() {
-			sunsetDate := time.Now().Add(time.Hour * 24 * -365)
+		It("should error if sunset date is in the past and failAfterSunsetDate is true", func() {
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * -365)
 			fieldDeprecations := deprecation.NewFieldDeprecations()
-			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate)
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate, true)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("this field is deprecated"))
+		})
+		It("should not error if sunset date is in the past but failAfterSunsetDate is false", func() {
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * -365)
+			fieldDeprecations := deprecation.NewFieldDeprecations()
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fieldDeprecations.IsEmpty()).To(BeFalse())
+		})
+		It("should still include deprecated field in headers when failAfterSunsetDate is false", func() {
+			headers := http.Header{}
+
+			sunsetDate := time.Now().UTC().Add(time.Hour * 24 * -365) // past sunset date
+			fieldDeprecations := deprecation.NewFieldDeprecations()
+			err := fieldDeprecations.Add("field", "this field is deprecated", sunsetDate, false)
+			Expect(err).NotTo(HaveOccurred())
+			fieldDeprecationsJSON, _ := fieldDeprecations.ToJSON()
+			headers.Set(consts.OcmFieldDeprecation, string(fieldDeprecationsJSON))
+
+			mockTransport.EXPECT().RoundTrip(req).Return(&http.Response{
+				StatusCode: http.StatusOK,
+				Header:     headers,
+				Body:       io.NopCloser(strings.NewReader("{}")),
+			}, nil)
+
+			output := captureStderr(func() {
+				resp, err := wrapper.RoundTrip(req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			})
+
+			Expect(output).To(ContainSubstring("WARNING: You are using OCM API fields that have been deprecated"))
+			Expect(output).To(ContainSubstring("this field is deprecated"))
 		})
 	})
 
