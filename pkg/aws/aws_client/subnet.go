@@ -29,7 +29,7 @@ func (client *AWSClient) CreateSubnet(vpcID string, zone string, subnetCidr stri
 	}
 	respCreateSubnet, err := client.Ec2Client.CreateSubnet(context.TODO(), input)
 	if err != nil {
-		log.LogError("create subnet error " + err.Error())
+		log.LogError("create subnet error %s", err.Error())
 		return nil, err
 	}
 	log.LogInfo("Created subnet %s for vpc %s", *respCreateSubnet.Subnet.SubnetId, vpcID)
@@ -104,7 +104,7 @@ func (client *AWSClient) ListSubnetsByFilter(filter []types.Filter) ([]types.Sub
 
 	resp, err := client.Ec2Client.DescribeSubnets(context.TODO(), input)
 	if err != nil {
-		return nil, fmt.Errorf("describe subnet by filter error " + err.Error())
+		return nil, fmt.Errorf("describe subnet by filter error %s", err.Error())
 	}
 
 	return resp.Subnets, err

@@ -25,7 +25,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -41,7 +41,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -57,7 +57,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -75,7 +75,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -93,7 +93,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -111,7 +111,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -129,7 +129,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -147,7 +147,7 @@ func (client *AWSClient) ResourceExisting(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return false
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -187,7 +187,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -205,7 +205,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -223,7 +223,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -241,7 +241,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -259,7 +259,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -277,7 +277,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 			if strings.Contains(err.Error(), "NotFound") {
 				return true
 			} else {
-				log.LogError(err.Error())
+				log.LogError("%s", err.Error())
 				return false
 			}
 		}
@@ -292,7 +292,7 @@ func (client *AWSClient) ResourceDeleted(resourceID string) bool {
 		}
 		output, err := client.Ec2Client.DescribeNatGateways(context.TODO(), input)
 		if err != nil {
-			log.LogError(err.Error())
+			log.LogError("%s", err.Error())
 			return false
 		}
 		if len(output.NatGateways) != 0 {
