@@ -215,12 +215,12 @@ func (vpc *VPC) CreatePublicSubnet(zone string) (*Subnet, error) {
 func (vpc *VPC) CreatePairSubnet(zone string) (*VPC, []*Subnet, error) {
 	publicSubnet, err := vpc.CreatePublicSubnet(zone)
 	if err != nil {
-		log.LogError("Create public subnet failed" + err.Error())
+		log.LogError("Create public subnet failed %s", err.Error())
 		return vpc, nil, err
 	}
 	privateSubnet, err := vpc.CreatePrivateSubnet(zone, true)
 	if err != nil {
-		log.LogError("Create private subnet failed" + err.Error())
+		log.LogError("Create private subnet failed %s", err.Error())
 		return vpc, nil, err
 	}
 	return vpc, []*Subnet{publicSubnet, privateSubnet}, err
@@ -314,7 +314,7 @@ func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
 	subnetcidr := vpc.CIDRPool.Allocate().CIDR
 	respCreateSubnet, err := vpc.AWSClient.CreateSubnet(vpc.VpcID, zone, subnetcidr)
 	if err != nil {
-		log.LogError("create subnet error " + err.Error())
+		log.LogError("create subnet error %s", err.Error())
 		return nil, err
 	}
 	err = vpc.AWSClient.WaitForResourceExisting(*respCreateSubnet.SubnetId, 4)
@@ -324,7 +324,7 @@ func (vpc *VPC) CreateSubnet(zone string) (*Subnet, error) {
 		return nil, err
 	}
 
-	log.LogInfo("Created subnet with ID " + *respCreateSubnet.SubnetId)
+	log.LogInfo("Created subnet with ID %s", *respCreateSubnet.SubnetId)
 	subnet := &Subnet{
 		ID:      *respCreateSubnet.SubnetId,
 		Private: true,
@@ -390,7 +390,7 @@ func (vpc *VPC) ListSubnets() ([]*Subnet, error) {
 	subnets := []*Subnet{}
 	awsSubnets, err := vpc.AWSClient.ListSubnetByVpcID(vpc.VpcID)
 	if err != nil {
-		log.LogError(err.Error())
+		log.LogError("%s", err.Error())
 		return subnets, err
 	}
 	log.LogInfo("Got %d subnets", len(awsSubnets))
@@ -406,7 +406,7 @@ func (vpc *VPC) ListSubnets() ([]*Subnet, error) {
 			SetRegion(vpc.Region)
 
 		subnets = append(subnets, subnet)
-		log.LogInfo(*sub.SubnetId + "\t" + *sub.CidrBlock + "\t" + *sub.AvailabilityZone + "\t")
+		log.LogInfo("%s\t%s\t%s\t", *sub.SubnetId, *sub.CidrBlock, *sub.AvailabilityZone)
 
 	}
 	vpc.SubnetList = subnets
