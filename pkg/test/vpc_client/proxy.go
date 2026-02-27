@@ -111,23 +111,24 @@ func (vpc *VPC) LaunchProxyInstanceWithAuth(zone string, keypairName string, pri
 	inst types.Instance, privateIP string, proxyServerCA string, err error) {
 	imageID, err := vpc.FindProxyLaunchImage()
 	if err != nil {
+		log.LogError("Find proxy launch image failed: %v", err)
 		return inst, "", "", err
 	}
 	pubSubnet, err := vpc.PreparePublicSubnet(zone)
 	if err != nil {
-		log.LogInfo("Error preparing a subnet in current zone %s with image ID %s: %s", zone, imageID, err)
+		log.LogError("Error preparing a subnet in current zone %s with image ID %s: %v", zone, imageID, err)
 		return inst, "", "", err
 	}
 	SGID, err := vpc.CreateAndAuthorizeDefaultSecurityGroupForProxy()
 	if err != nil {
-		log.LogError("Prepare SG failed for the proxy preparation %s", err)
+		log.LogError("Prepare SG failed for the proxy preparation: %v", err)
 		return inst, "", "", err
 	}
 	randomStr := utils.RandomLabel(2)
 	keyName := fmt.Sprintf("%s-%s-%s", CON.InstanceKeyNamePrefix, randomStr, keypairName)
 	key, err := vpc.CreateKeyPair(keyName)
 	if err != nil {
-		log.LogError("Create key pair %s failed %s", keyName, err)
+		log.LogError("Create key pair %s failed: %v", keyName, err)
 		return inst, "", "", err
 	}
 	tags := map[string]string{
@@ -136,19 +137,19 @@ func (vpc *VPC) LaunchProxyInstanceWithAuth(zone string, keypairName string, pri
 	}
 	_, err = vpc.AWSClient.TagResource(*key.KeyPairId, tags)
 	if err != nil {
-		log.LogError("Add tag for key pair %s failed %s", *key.KeyPairId, err)
+		log.LogError("Add tag for key pair %s failed: %v", *key.KeyPairId, err)
 		return inst, "", "", err
 	}
 	privateKeyName := fmt.Sprintf("%s-%s", keypairName, "keyPair.pem")
 	sshKey, err := file.WriteToFile(*key.KeyMaterial, privateKeyName, privateKeyPath)
 	if err != nil {
-		log.LogError("Write private key to file failed %s", err)
+		log.LogError("Write private key to file failed: %v", err)
 		return inst, "", "", err
 	}
 
 	instOut, err := vpc.AWSClient.LaunchInstance(pubSubnet.ID, imageID, 1, "t3.medium", keyName, []string{SGID}, true)
 	if err != nil {
-		log.LogError("Launch proxy instance failed %s", err)
+		log.LogError("Launch proxy instance failed: %v", err)
 		return inst, "", "", err
 	} else {
 		log.LogInfo("Launch proxy instance %s succeed", *instOut.Instances[0].InstanceId)
@@ -157,13 +158,13 @@ func (vpc *VPC) LaunchProxyInstanceWithAuth(zone string, keypairName string, pri
 	instID := *instOut.Instances[0].InstanceId
 	_, err = vpc.AWSClient.TagResource(instID, tags)
 	if err != nil {
-		log.LogError("Add tag for instance  %s failed %s", instID, err)
+		log.LogError("Add tag for instance  %s failed: %v", instID, err)
 		return inst, "", "", err
 	}
 
 	publicIP, err := vpc.AWSClient.AllocateEIPAndAssociateInstance(instID)
 	if err != nil {
-		log.LogError("Prepare EIP failed for the proxy preparation %s", err)
+		log.LogError("Prepare EIP failed for the proxy preparation: %v", err)
 		return inst, "", "", err
 	}
 	log.LogInfo("Prepare EIP successfully for the proxy preparation. Launch with IP: %s", publicIP)
@@ -172,14 +173,14 @@ func (vpc *VPC) LaunchProxyInstanceWithAuth(zone string, keypairName string, pri
 	hostname := fmt.Sprintf("%s:22", publicIP)
 	err = setupMITMProxyServer(sshKey, hostname, username, password)
 	if err != nil {
-		log.LogError("Setup MITM proxy server failed  %s", err)
+		log.LogError("Setup MITM proxy server failed: %v", err)
 		return inst, "", "", err
 	}
 
 	cmd := "cat mitm-ca.pem"
 	caContent, err := Exec_CMD(CON.AWSInstanceUser, sshKey, hostname, cmd)
 	if err != nil {
-		log.LogError("login instance to run cmd %s:%s", cmd, err)
+		log.LogError("login instance to run cmd %s: %v", cmd, err)
 		return inst, "", "", err
 	}
 	return instOut.Instances[0], *instOut.Instances[0].PrivateIpAddress, caContent, err
