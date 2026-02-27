@@ -3,11 +3,18 @@ package aws_client
 import (
 	"context"
 	"fmt"
+	"slices"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/openshift-online/ocm-common/pkg/log"
+)
+
+const (
+	// ClientWaiterDelay is the standard polling interval for subnet availability waiter
+	ClientWaiterDelay = 2 * time.Second
 )
 
 func (client *AWSClient) CreateSubnet(vpcID string, zone string, subnetCidr string) (*types.Subnet, error) {
@@ -108,4 +115,30 @@ func (client *AWSClient) ListSubnetsByFilter(filter []types.Filter) ([]types.Sub
 	}
 
 	return resp.Subnets, err
+}
+
+// WaitForSubnetAccessibility validates subnets are accessible after RAM association.
+// This addresses the AWS propagation delay between RAM reporting "ASSOCIATED" status
+// and subnets being truly accessible in the target account.
+func (client *AWSClient) WaitForSubnetAccessibility(subnetIDs []string, timeout int) error {
+	if len(subnetIDs) == 0 {
+		return nil
+	}
+
+	uniqueSubnetIDs := []string{}
+	for _, id := range subnetIDs {
+		if !slices.Contains(uniqueSubnetIDs, id) {
+			uniqueSubnetIDs = append(uniqueSubnetIDs, id)
+		}
+	}
+
+	now := time.Now()
+	for now.Add(time.Duration(timeout) * time.Second).After(time.Now()) {
+		subs, err := client.ListSubnetDetail(uniqueSubnetIDs...)
+		if err == nil && len(subs) == len(uniqueSubnetIDs) {
+			return nil
+		}
+		time.Sleep(ClientWaiterDelay)
+	}
+	return fmt.Errorf("timeout after %d seconds waiting for subnets to be accessible: %v", timeout, uniqueSubnetIDs)
 }
