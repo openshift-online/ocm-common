@@ -51,7 +51,7 @@ func (client *AWSClient) DeleteNatGateway(natGatewayID string, timeout ...int) (
 	return respDeleteNatGateway, err
 }
 
-func (client *AWSClient) ListNatGateWays(vpcID string) ([]types.NatGateway, error) {
+func (client *AWSClient) ListNatGateways(vpcID string) ([]types.NatGateway, error) {
 	vpcFilter := "vpc-id"
 	filter := []types.Filter{
 		types.Filter{

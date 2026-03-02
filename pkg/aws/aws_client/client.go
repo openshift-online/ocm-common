@@ -25,7 +25,7 @@ import (
 )
 
 type AWSClient struct {
-	Ec2Client            *ec2.Client
+	Ec2Client            EC2ClientAPI
 	Route53Client        *route53.Client
 	StackFormationClient *cloudformation.Client
 	ElbClient            *elb.Client
@@ -139,7 +139,7 @@ func (client *AWSClient) GetAWSPartition() string {
 	return segments[1]
 }
 
-func (client *AWSClient) EC2() *ec2.Client {
+func (client *AWSClient) EC2() EC2ClientAPI {
 	return client.Ec2Client
 }
 
