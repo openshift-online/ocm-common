@@ -34,6 +34,7 @@ const (
 	InvalidVpcID                 = "InvalidVpcID.NotFound"
 	InvalidAllocationID          = "InvalidAllocationID.NotFound"
 	InvalidGroup                 = "InvalidGroup.NotFound"
+	InvalidGroupDuplicate        = "InvalidGroup.Duplicate"
 	InvalidSubnetID              = "InvalidSubnetId.NotFound"
 	InvalidNatGatewayID          = "InvalidNatGatewayID.NotFound"
 )
