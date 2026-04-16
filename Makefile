@@ -38,7 +38,7 @@ coverage:
 
 .PHONY: fmt
 fmt:
-	gofmt -s -l -w cmd pkg
+	gofmt -s -l -w pkg
 
 .PHONY: lint
 lint:
