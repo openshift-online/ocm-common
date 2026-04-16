@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ram v1.26.1
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.5
-	github.com/go-jose/go-jose/v4 v4.0.2
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/go-homedir v1.1.0
