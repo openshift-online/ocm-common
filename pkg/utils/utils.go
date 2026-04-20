@@ -52,7 +52,12 @@ func GeneratePassword(length int) string {
 	lowercase := "abcdefghijklmnopqrstuvwxyz"
 	uppercase := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	digits := "0123456789"
-	special := "!#$^&*()-_=+{}|;:,.<>?/~`"
+	// OCM-23974: Removed URL-problematic characters to prevent bastion proxy URL parsing issues
+	// RFC 3986 gen-delims removed: # : / ? @ [ ] (fragment/query/path/auth separators)
+	// RFC 3986 sub-delims removed: ! $ & ' + , ; = (query/form delimiters)
+	// Shell meta-characters removed: {} | < > ~ ` (command separators/redirection)
+	// Safe characters only: ^ * ( ) - _ (unreserved or safe in userinfo context)
+	special := "^*()-_"
 	allChars := lowercase + uppercase + digits + special
 
 	var password []rune
