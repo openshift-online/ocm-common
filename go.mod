@@ -16,13 +16,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.5
 	github.com/go-jose/go-jose/v4 v4.1.4
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.30.0
 	github.com/openshift-online/ocm-cli v1.0.2
-	github.com/openshift-online/ocm-sdk-go v0.1.445
+	github.com/openshift-online/ocm-sdk-go v0.1.499
 	github.com/sirupsen/logrus v1.9.3
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.41.0
@@ -48,17 +48,12 @@ require (
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/itchyny/gojq v0.12.9 // indirect
 	github.com/itchyny/timefmt-go v0.1.4 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.14.3 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgtype v1.14.0 // indirect
-	github.com/jackc/pgx/v4 v4.18.3 // indirect
+	github.com/lib/pq v1.10.5 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.23 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
+	github.com/openshift-online/ocm-api-model/clientapi v0.0.453 // indirect
+	github.com/openshift-online/ocm-api-model/model v0.0.453 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.13.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

@@ -26,7 +26,7 @@ unexport GOFLAGS
 
 .PHONY: build
 build:
-	go build
+	go build ./...
 
 .PHONY: test
 test:
