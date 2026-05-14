@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/openshift-online/ocm-common/pkg/log"
@@ -306,6 +307,256 @@ func (client *AWSClient) CreatePolicyForAuditLogForward(policyName string) (stri
 		},
 	}
 	return client.CreatePolicy(policyName, statement)
+}
+
+func autoNodePolicyStatements() []map[string]any {
+	return []map[string]any{
+		{
+			"Sid":    "AllowScopedEC2InstanceAccessActions",
+			"Effect": "Allow",
+			"Resource": []string{
+				"arn:*:ec2:*::image/*",
+				"arn:*:ec2:*::snapshot/*",
+				"arn:*:ec2:*:*:security-group/*",
+				"arn:*:ec2:*:*:subnet/*",
+			},
+			"Action": []string{
+				"ec2:RunInstances",
+				"ec2:CreateFleet",
+			},
+		},
+		{
+			"Sid":      "AllowScopedEC2LaunchTemplateAccessActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:ec2:*:*:launch-template/*",
+			"Action": []string{
+				"ec2:RunInstances",
+				"ec2:CreateFleet",
+			},
+		},
+		{
+			"Sid":    "AllowScopedEC2InstanceActionsWithTags",
+			"Effect": "Allow",
+			"Resource": []string{
+				"arn:*:ec2:*:*:fleet/*",
+				"arn:*:ec2:*:*:instance/*",
+				"arn:*:ec2:*:*:volume/*",
+				"arn:*:ec2:*:*:network-interface/*",
+				"arn:*:ec2:*:*:launch-template/*",
+				"arn:*:ec2:*:*:spot-instances-request/*",
+			},
+			"Action": []string{
+				"ec2:RunInstances",
+				"ec2:CreateFleet",
+				"ec2:CreateLaunchTemplate",
+			},
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:RequestTag/karpenter.sh/nodepool": "*",
+				},
+			},
+		},
+		{
+			"Sid":    "AllowScopedResourceCreationTagging",
+			"Effect": "Allow",
+			"Resource": []string{
+				"arn:*:ec2:*:*:fleet/*",
+				"arn:*:ec2:*:*:instance/*",
+				"arn:*:ec2:*:*:volume/*",
+				"arn:*:ec2:*:*:network-interface/*",
+				"arn:*:ec2:*:*:launch-template/*",
+				"arn:*:ec2:*:*:spot-instances-request/*",
+			},
+			"Action": "ec2:CreateTags",
+			"Condition": map[string]any{
+				"StringEquals": map[string]any{
+					"ec2:CreateAction": []string{
+						"RunInstances",
+						"CreateFleet",
+						"CreateLaunchTemplate",
+					},
+				},
+				"StringLike": map[string]any{
+					"aws:RequestTag/karpenter.sh/nodepool": "*",
+				},
+			},
+		},
+		{
+			"Sid":      "AllowScopedResourceTagging",
+			"Effect":   "Allow",
+			"Resource": "arn:*:ec2:*:*:instance/*",
+			"Action":   "ec2:CreateTags",
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:ResourceTag/karpenter.sh/nodepool": "*",
+				},
+			},
+		},
+		{
+			"Sid":    "AllowScopedDeletion",
+			"Effect": "Allow",
+			"Resource": []string{
+				"arn:*:ec2:*:*:instance/*",
+				"arn:*:ec2:*:*:launch-template/*",
+			},
+			"Action": []string{
+				"ec2:TerminateInstances",
+				"ec2:DeleteLaunchTemplate",
+			},
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:ResourceTag/karpenter.sh/nodepool": "*",
+				},
+			},
+		},
+		{
+			"Sid":      "AllowRegionalReadActions",
+			"Effect":   "Allow",
+			"Resource": "*",
+			"Action": []string{
+				"ec2:DescribeImages",
+				"ec2:DescribeInstances",
+				"ec2:DescribeInstanceTypeOfferings",
+				"ec2:DescribeInstanceTypes",
+				"ec2:DescribeLaunchTemplates",
+				"ec2:DescribeSecurityGroups",
+				"ec2:DescribeSpotPriceHistory",
+				"ec2:DescribeSubnets",
+			},
+		},
+		{
+			"Sid":      "AllowSSMReadActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:ssm:*::parameter/aws/service/*",
+			"Action":   "ssm:GetParameter",
+		},
+		{
+			"Sid":      "AllowPricingReadActions",
+			"Effect":   "Allow",
+			"Resource": "*",
+			"Action":   "pricing:GetProducts",
+		},
+		{
+			"Sid":      "AllowInterruptionQueueActions",
+			"Effect":   "Allow",
+			"Resource": "*",
+			"Action": []string{
+				"sqs:DeleteMessage",
+				"sqs:GetQueueUrl",
+				"sqs:ReceiveMessage",
+			},
+		},
+		{
+			"Sid":      "AllowPassingInstanceRole",
+			"Effect":   "Allow",
+			"Resource": "arn:*:iam::*:role/*",
+			"Action":   "iam:PassRole",
+			"Condition": map[string]any{
+				"StringEquals": map[string]any{
+					"iam:PassedToService": []string{
+						"ec2.amazonaws.com",
+						"ec2.amazonaws.com.cn",
+					},
+				},
+			},
+		},
+		{
+			"Sid":      "AllowScopedInstanceProfileCreationActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:iam::*:instance-profile/*",
+			"Action": []string{
+				"iam:CreateInstanceProfile",
+			},
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:RequestTag/karpenter.k8s.aws/ec2nodeclass": "*",
+				},
+			},
+		},
+		{
+			"Sid":      "AllowScopedInstanceProfileTagActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:iam::*:instance-profile/*",
+			"Action": []string{
+				"iam:TagInstanceProfile",
+			},
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:ResourceTag/karpenter.k8s.aws/ec2nodeclass": "*",
+					"aws:RequestTag/karpenter.k8s.aws/ec2nodeclass":  "*",
+				},
+			},
+		},
+		{
+			"Sid":      "AllowScopedInstanceProfileActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:iam::*:instance-profile/*",
+			"Action": []string{
+				"iam:AddRoleToInstanceProfile",
+				"iam:RemoveRoleFromInstanceProfile",
+				"iam:DeleteInstanceProfile",
+			},
+			"Condition": map[string]any{
+				"StringLike": map[string]any{
+					"aws:ResourceTag/karpenter.k8s.aws/ec2nodeclass": "*",
+				},
+			},
+		},
+		{
+			"Sid":      "AllowInstanceProfileReadActions",
+			"Effect":   "Allow",
+			"Resource": "arn:*:iam::*:instance-profile/*",
+			"Action": []string{
+				"iam:GetInstanceProfile",
+				"iam:ListInstanceProfiles",
+			},
+		},
+	}
+}
+
+func (client *AWSClient) CreatePolicyForAutoNode(policyName string) (string, error) {
+	statements := autoNodePolicyStatements()
+	return client.CreatePolicy(policyName, statements...)
+}
+
+func (client *AWSClient) CreateRoleForAutoNode(roleName string, awsAccountID string, oidcEndpointURL string, policyArn string) (types.Role, error) {
+	oidcEndpointURL = strings.TrimPrefix(oidcEndpointURL, "https://")
+	oidcEndpointURL = strings.TrimPrefix(oidcEndpointURL, "http://")
+	oidcEndpointURL = strings.TrimSuffix(oidcEndpointURL, "/")
+	statement := map[string]any{
+		"Effect": "Allow",
+		"Principal": map[string]any{
+			"Federated": fmt.Sprintf("arn:aws:iam::%s:oidc-provider/%s", awsAccountID, oidcEndpointURL),
+		},
+		"Action": "sts:AssumeRoleWithWebIdentity",
+		"Condition": map[string]any{
+			"StringEquals": map[string]any{
+				fmt.Sprintf("%s:sub", oidcEndpointURL): "system:serviceaccount:kube-system:karpenter",
+			},
+		},
+	}
+
+	assumeRolePolicyDocument, err := completeRolePolicyDocument(statement)
+	if err != nil {
+		log.LogError("Failed to convert Role Policy Document into JSON: %s", err.Error())
+		return types.Role{}, err
+	}
+
+	return client.CreateRoleAndAttachPolicy(roleName, assumeRolePolicyDocument, "", make(map[string]string), "/", policyArn)
+}
+
+func (client *AWSClient) CreateRoleAndPolicyForAutoNode(roleName string, policyName string, awsAccountID string, oidcEndpointURL string) (types.Role, string, error) {
+	policyArn, err := client.CreatePolicyForAutoNode(policyName)
+	if err != nil {
+		return types.Role{}, "", err
+	}
+
+	role, err := client.CreateRoleForAutoNode(roleName, awsAccountID, oidcEndpointURL, policyArn)
+	if err != nil {
+		return types.Role{}, policyArn, err
+	}
+
+	return role, policyArn, nil
 }
 
 func completeRolePolicyDocument(statement map[string]interface{}) (string, error) {
