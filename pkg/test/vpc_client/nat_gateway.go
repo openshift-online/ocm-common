@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sync"
 
+	awserrors "github.com/openshift-online/ocm-common/pkg/aws/errors"
 	"github.com/openshift-online/ocm-common/pkg/log"
 )
 
@@ -43,7 +44,8 @@ func (vpc *VPC) DeleteVPCNatGateways(vpcID string) error {
 	var releaseErrs []error
 	for _, allocID := range allocationIDs {
 		log.LogInfo("Releasing EIP allocation %s", allocID)
-		if err := vpc.AWSClient.ReleaseAddressWithAllocationID(allocID); err != nil {
+		err := vpc.AWSClient.ReleaseAddressWithAllocationID(allocID)
+		if err != nil && !awserrors.IsErrorCode(err, awserrors.InvalidAllocationID) {
 			releaseErrs = append(releaseErrs, err)
 		}
 	}
