@@ -2,9 +2,10 @@ package sql_parser
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/openshift-online/ocm-common/pkg/utils/parser/state_machine"
 	"github.com/openshift-online/ocm-common/pkg/utils/parser/string_parser"
-	"strings"
 )
 
 const defaultMaximumComplexity = 10
@@ -89,13 +90,7 @@ func (p *sqlParser) transitionInterceptor(_, to *state_machine.State[string, str
 		return nil
 	case quotedValueTokenFamily:
 		p.resultQry += " ?"
-		// unescape
-		tmp := strings.ReplaceAll(tokenValue, `\'`, "'")
-		// remove quotes:
-		if len(tmp) > 1 {
-			tmp = string([]rune(tmp)[1 : len(tmp)-1])
-		}
-		p.resultValues = append(p.resultValues, tmp)
+		p.resultValues = append(p.resultValues, unquoteValue(tokenValue))
 		return nil
 	case logicalOpTokenFamily:
 		p.complexity++
@@ -115,10 +110,32 @@ func (p *sqlParser) transitionInterceptor(_, to *state_machine.State[string, str
 		}
 		p.resultQry += columnName
 		return nil
+	case jsonbFamily:
+		// The JSONB operators (`->`, `->>`, `@>`) are fixed grammar literals and are
+		// safe to emit verbatim. The JSONB path keys (jsonbField / jsonbFieldToStringify)
+		// are user supplied and MUST be parameterised, otherwise a quoted key can break
+		// out of the string literal and inject arbitrary SQL.
+		if to.Name() == jsonbField || to.Name() == jsonbFieldToStringify {
+			p.resultQry += " ?"
+			p.resultValues = append(p.resultValues, unquoteValue(tokenValue))
+		} else {
+			p.resultQry += " " + tokenValue
+		}
+		return nil
 	default:
 		p.resultQry += " " + tokenValue
 		return nil
 	}
+}
+
+func unquoteValue(tokenValue string) string {
+	// unescape
+	tmp := strings.ReplaceAll(tokenValue, `\'`, "'")
+	// remove quotes:
+	if len(tmp) > 1 {
+		tmp = string([]rune(tmp)[1 : len(tmp)-1])
+	}
+	return tmp
 }
 
 func contains(ary []string, value string) bool {

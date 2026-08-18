@@ -177,8 +177,8 @@ var _ = Describe("SQLParser", func() {
 	DescribeTable("JSONB Query Parsing", parserTest,
 		Entry("JSONB query", testData{
 			qry:       `manifest->'data'->'manifest'->'metadata'->'labels'->>'foo' = 'bar'`,
-			outQry:    "manifest -> 'data' -> 'manifest' -> 'metadata' -> 'labels' ->> 'foo' = ?",
-			outValues: []interface{}{"bar"},
+			outQry:    "manifest -> ? -> ? -> ? -> ? ->> ? = ?",
+			outValues: []interface{}{"data", "manifest", "metadata", "labels", "foo", "bar"},
 			wantErr:   false,
 		}, NewSQLParser()),
 		Entry("Invalid JSONB query", testData{
@@ -192,16 +192,19 @@ var _ = Describe("SQLParser", func() {
 			qry: `manifest->'data'->'manifest'->'metadata'->'labels'->>'foo' = 'bar' and ` +
 				`( manifest->'data'->'manifest' ->> 'foo' in ('value1', 'value2') or ` +
 				`manifest->'data'->'manifest'->>'labels' <> 'foo1')`,
-			outQry: "manifest -> 'data' -> 'manifest' -> 'metadata' -> 'labels' ->> 'foo' = ? and " +
-				"(manifest -> 'data' -> 'manifest' ->> 'foo' in( ? , ?) or " +
-				"manifest -> 'data' -> 'manifest' ->> 'labels' <> ?)",
-			outValues: []interface{}{"bar", "value1", "value2", "foo1"},
-			wantErr:   false,
+			outQry: "manifest -> ? -> ? -> ? -> ? ->> ? = ? and " +
+				"(manifest -> ? -> ? ->> ? in( ? , ?) or " +
+				"manifest -> ? -> ? ->> ? <> ?)",
+			outValues: []interface{}{
+				"data", "manifest", "metadata", "labels", "foo", "bar",
+				"data", "manifest", "foo", "value1", "value2",
+				"data", "manifest", "labels", "foo1"},
+			wantErr: false,
 		}, NewSQLParser()),
 		Entry("JSONB Query @>", testData{
 			qry:       `resources.payload -> 'data' -> 'manifests' @> '[{"metadata":{"labels":{"foo":"bar"}}}]'`,
-			outQry:    "resources.payload -> 'data' -> 'manifests' @> ?",
-			outValues: []interface{}{`[{"metadata":{"labels":{"foo":"bar"}}}]`},
+			outQry:    "resources.payload -> ? -> ? @> ?",
+			outValues: []interface{}{"data", "manifests", `[{"metadata":{"labels":{"foo":"bar"}}}]`},
 			wantErr:   false,
 		}, NewSQLParser()),
 		Entry("Mixed JSONB Query", testData{
@@ -210,15 +213,27 @@ var _ = Describe("SQLParser", func() {
 				`manifest->'data'->'manifest'->>'labels' <> 'foo1')` +
 				` AND resources.payload -> 'data' -> 'manifests' @> '[{"metadata":{"labels":{"foo":"bar"}}}]' OR ` +
 				` my_column in (1, 2, 3) and my_column2 = 'value'`,
-			outQry: "manifest -> 'data' -> 'manifest' -> 'metadata' -> 'labels' ->> 'foo' = ? " +
-				"and (manifest -> 'data' -> 'manifest' ->> 'foo' in( ? , ?) " +
-				"or manifest -> 'data' -> 'manifest' ->> 'labels' <> ?) " +
-				"AND resources.payload -> 'data' -> 'manifests' @> ? " +
+			outQry: "manifest -> ? -> ? -> ? -> ? ->> ? = ? " +
+				"and (manifest -> ? -> ? ->> ? in( ? , ?) " +
+				"or manifest -> ? -> ? ->> ? <> ?) " +
+				"AND resources.payload -> ? -> ? @> ? " +
 				"OR my_column in( ? , ? , ?) and my_column2 = ?",
 			outValues: []interface{}{
-				"bar", "value1", "value2", "foo1",
-				`[{"metadata":{"labels":{"foo":"bar"}}}]`, "1", "2", "3", "value"},
+				"data", "manifest", "metadata", "labels", "foo", "bar",
+				"data", "manifest", "foo", "value1", "value2",
+				"data", "manifest", "labels", "foo1",
+				"data", "manifests", `[{"metadata":{"labels":{"foo":"bar"}}}]`,
+				"1", "2", "3", "value"},
 			wantErr: false,
+		}, NewSQLParser()),
+		Entry("JSONB key with injection payload is parameterised", testData{
+			// A malicious JSONB key that, under the previous verbatim concatenation,
+			// would break out of the string literal and inject SQL. It must now be
+			// emitted as a bind parameter instead of reaching the query text.
+			qry:       `manifest->'x\' OR \'1\'=\'1'->>'foo' = 'bar'`,
+			outQry:    "manifest -> ? ->> ? = ?",
+			outValues: []interface{}{`x' OR '1'='1`, "foo", "bar"},
+			wantErr:   false,
 		}, NewSQLParser()),
 	)
 
