@@ -1,6 +1,6 @@
 # Contributing to OCM-Common
 Welcome, and thank you for considering to contribute to OCM-Common.
-Before you begin, or have more questions reach out to us on [Slack](https://redhat-internal.slack.com/archives/CB53T9ZHQ)
+Before you begin, or have more questions reach out to us on [Slack](https://redhat.enterprise.slack.com/archives/C0AKBJST8QH)
 
 ## Contributing Code
 To contribute bug fixes or features to OCM-Common:
@@ -10,7 +10,7 @@ To contribute bug fixes or features to OCM-Common:
 - Test your changes.
 - Open a Pull Request (PR).
 
-Communicate your intent in the form of a JIRA ticket on the [OCM](https://issues.redhat.com/projects/OCM) project.
+Communicate your intent in the form of a JIRA ticket on the [ROSAENG](https://redhat.atlassian.net/browse/ROSAENG) project.
 
 Be sure to practice good git commit hygiene as you make your changes. All but the smallest changes should be broken up
 into a few commits that tell a story. Use your git commits to provide context for the folks who will review PR. We strive
@@ -44,7 +44,7 @@ All code should be covered by tests. We use [Ginkgo](https://onsi.github.io/gink
 will be rejected.
 
 Once you made and tested your changes, create a pull request (PR). In the PR `overview` please link the
-jira ticket associated with your change. This should follow the format `JIRA: OCM-xxxx`. Note the key word `JIRA`,
+jira ticket associated with your change. This should follow the format `JIRA: ROSAENG-xxxx`. Note the key word `JIRA`,
 use of any other key word may result in the bot performing unwanted action to the ticket in JIRA. Please also include in the
 `overview` any additional information not in the JIRA that may help set context around your intent. Also include any extra
 validation steps which may help reviews to validate the changes.
