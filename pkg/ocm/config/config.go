@@ -29,7 +29,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/openshift-online/ocm-sdk-go/authentication/securestore"
 
-	"github.com/openshift-online/ocm-cli/pkg/properties"
+	"github.com/openshift-online/ocm-common/pkg/ocm/consts"
 )
 
 // Config is the type used to store the configuration of the client.
@@ -263,7 +263,7 @@ func (c *Config) Disarm() {
 
 // IsKeyringManaged returns the keyring name and a boolean indicating if the config is managed by the keyring.
 func IsKeyringManaged() (keyring string, ok bool) {
-	keyring = os.Getenv(properties.KeyringEnvKey)
+	keyring = os.Getenv(consts.KeyringEnvKey)
 	return keyring, keyring != ""
 }
 

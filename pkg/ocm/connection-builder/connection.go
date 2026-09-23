@@ -20,7 +20,6 @@ import (
 	sdk "github.com/openshift-online/ocm-sdk-go"
 	"github.com/openshift-online/ocm-sdk-go/logging"
 
-	"github.com/openshift-online/ocm-cli/pkg/debug"
 	"github.com/openshift-online/ocm-common/pkg/ocm/config"
 )
 
@@ -162,11 +161,9 @@ func (b *ConnectionBuilder) getLogger() (logging.Logger, error) {
 		return b.logger, nil
 	}
 
-	// Create a default logger:
+	// Create a default logger with standard verbosity.
+	// Callers who need debug logging should use WithLogger() to provide their own logger.
 	level := glog.Level(1)
-	if debug.Enabled() {
-		level = glog.Level(0)
-	}
 
 	return sdk.NewGlogLoggerBuilder().
 		DebugV(level).
