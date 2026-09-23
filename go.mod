@@ -21,7 +21,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.30.0
-	github.com/openshift-online/ocm-cli v1.0.2
 	github.com/openshift-online/ocm-sdk-go v0.1.499
 	github.com/sirupsen/logrus v1.9.3
 	go.uber.org/mock v0.6.0
@@ -60,7 +59,6 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/zalando/go-keyring v0.2.3 // indirect
 	golang.org/x/oauth2 v0.19.0 // indirect
 	golang.org/x/term v0.34.0 // indirect
