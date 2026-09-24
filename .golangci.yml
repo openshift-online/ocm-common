@@ -1,2 +1,7 @@
+version: "2"
 run:
   timeout: 10m
+issues:
+  # Only report issues in new code (changes since merge base with main)
+  new: true
+  new-from-rev: origin/main

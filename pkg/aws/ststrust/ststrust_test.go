@@ -196,8 +196,8 @@ var _ = Describe("STS external ID trust policy", func() {
 				"Version": "2012-10-17",
 				"Statement": []map[string]interface{}{
 					{
-						"Effect":  "Allow",
-						"Action":  []string{"sts:AssumeRole"},
+						"Effect": "Allow",
+						"Action": []string{"sts:AssumeRole"},
 						"Condition": map[string]interface{}{
 							"StringEqualsIfExists": map[string]interface{}{
 								"sts:ExternalId": externalIDA,
