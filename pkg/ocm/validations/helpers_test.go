@@ -17,7 +17,7 @@ var _ = Describe("ValidateIssuerUrlMatchesAssumePolicyDocument", func() {
 		err := ValidateIssuerUrlMatchesAssumePolicyDocument(roleArn, parsedUrl, assumePolicyDocument)
 
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal(fmt.Sprintf("Operator role '%s' does not have trusted relationship to '%s' issuer URL",
+		Expect(err.Error()).To(Equal(fmt.Sprintf("operator role '%s' does not have trusted relationship to '%s' issuer URL",
 			roleArn, parsedUrl.Host+parsedUrl.Path)))
 	})
 

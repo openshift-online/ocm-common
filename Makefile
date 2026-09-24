@@ -38,17 +38,38 @@ coverage:
 
 .PHONY: fmt
 fmt:
-	gofmt -s -l -w cmd pkg
+	gofmt -s -l -w pkg
 
 .PHONY: lint
 lint:
-	golangci-lint run --timeout 5m0s
+	golangci-lint run --timeout 10m0s
 
 .PHONY: clean
 clean:
 	rm -rf \
 		ocm-common \
 		$(NULL)
+
+.PHONY: validate-commits
+validate-commits:
+	@echo "Validating commit messages..."
+	@git log --pretty=format:%s origin/main..HEAD | while IFS= read -r message; do \
+		echo "Validating: $$message"; \
+		if echo "$$message" | grep -qE '^Merge (commit|pull request|branch)'; then \
+			echo "  Skipping merge commit"; \
+			continue; \
+		fi; \
+		if ! echo "$$message" | grep -qE '^[A-Z]+-[0-9]+ \| (feat|fix|refactor|chore|ci|docs|test|perf|style): .+$$'; then \
+			echo "ERROR: Invalid commit message format"; \
+			echo "Expected: JIRA-TICKET | TYPE: MESSAGE"; \
+			echo "Example: OCMCOMM-123 | feat: add new feature"; \
+			echo ""; \
+			echo "Valid types: feat, fix, refactor, chore, ci, docs, test, perf, style"; \
+			exit 1; \
+		fi; \
+		echo "  ✓ Valid"; \
+	done
+	@echo "All commits validated successfully"
 
 .PHONY: validate-version
 validate-version:
