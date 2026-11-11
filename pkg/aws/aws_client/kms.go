@@ -81,8 +81,9 @@ func (client *AWSClient) PutKMSPolicy(keyID string, policyName string, policy st
 	})
 	if err != nil {
 		log.LogError("Got error put KMS key policy: %s", err)
+		return kms.PutKeyPolicyOutput{}, err
 	}
-	return *result, err
+	return *result, nil
 }
 
 func (client *AWSClient) TagKeys(kmsKeyId string, tagKey string, tagValue string) (*kms.TagResourceOutput, error) {
