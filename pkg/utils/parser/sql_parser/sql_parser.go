@@ -132,8 +132,13 @@ func unquoteValue(tokenValue string) string {
 	// unescape
 	tmp := strings.ReplaceAll(tokenValue, `\'`, "'")
 	// remove quotes:
-	if len(tmp) > 1 {
-		tmp = string([]rune(tmp)[1 : len(tmp)-1])
+	// Slice by rune count, not by len(tmp): len(tmp) counts bytes, and using
+	// it to bound a []rune slice corrupts tokens containing multibyte
+	// characters — a single multibyte rune leaves the closing quote in the
+	// value, and two or more extra bytes read past the slice length (within
+	// its capacity, appending garbage) or panic outright.
+	if runes := []rune(tmp); len(runes) > 1 {
+		tmp = string(runes[1 : len(runes)-1])
 	}
 	return tmp
 }
