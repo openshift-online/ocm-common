@@ -76,6 +76,18 @@ var _ = Describe("SQLParser", func() {
 			outQry:    "name = ?",
 			outValues: []interface{}{`@,\'""(){}/`},
 		}, NewSQLParser()),
+		Entry("Quoted value with multibyte characters", testData{
+			qry:       `name='café'`,
+			wantErr:   false,
+			outQry:    "name = ?",
+			outValues: []interface{}{"café"},
+		}, NewSQLParser()),
+		Entry("Quoted value with multibyte characters and escaped quote", testData{
+			qry:       `name='café\'s'`,
+			wantErr:   false,
+			outQry:    "name = ?",
+			outValues: []interface{}{"café's"},
+		}, NewSQLParser()),
 	)
 
 	DescribeTable("IN Keyword Parsing", parserTest,
@@ -233,6 +245,22 @@ var _ = Describe("SQLParser", func() {
 			qry:       `manifest->'x\' OR \'1\'=\'1'->>'foo' = 'bar'`,
 			outQry:    "manifest -> ? ->> ? = ?",
 			outValues: []interface{}{`x' OR '1'='1`, "foo", "bar"},
+			wantErr:   false,
+		}, NewSQLParser()),
+		Entry("JSONB keys with a multibyte character", testData{
+			// A single multibyte rune made the byte-based quote stripping keep
+			// the closing quote inside the bound key.
+			qry:       `payload->'é'->>'name' = 'v'`,
+			outQry:    "payload -> ? ->> ? = ?",
+			outValues: []interface{}{"é", "name", "v"},
+			wantErr:   false,
+		}, NewSQLParser()),
+		Entry("JSONB keys and value with multibyte characters", testData{
+			// Two or more extra bytes made the byte-based slice bounds exceed
+			// the rune count and panicked the parser outright.
+			qry:       `payload->'日本語'->>'ラベル' = '値'`,
+			outQry:    "payload -> ? ->> ? = ?",
+			outValues: []interface{}{"日本語", "ラベル", "値"},
 			wantErr:   false,
 		}, NewSQLParser()),
 	)
